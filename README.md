@@ -15,7 +15,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 
 **فارسی** · [English ↓](#-english)
 
-<img src="assets/screens/dashboard-fa-dark.jpg" alt="داشبورد پنل مدیریت — BotPanel Dashboard" width="860"/>
+
 
 </div>
 
