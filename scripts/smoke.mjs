@@ -39,7 +39,6 @@ function mockKV() {
 
 const ENV = {
   BOT_KV: mockKV(),
-  ADMIN_PASSWORD: 'test-password-123',
   WEBHOOK_SECRET: 'whsec-test',
   APP_VERSION: 'smoke-test',
 };
@@ -51,9 +50,10 @@ const ok = (name, cond, extra = '') => {
   else { failed++; console.error('  ✘', name, extra); }
 };
 
-async function call(method, path, { body, token, headers = {} } = {}) {
+async function call(method, path, { body, token, ip, headers = {} } = {}) {
   const h = { 'content-type': 'application/json', ...headers };
   if (token) h.authorization = 'Bearer ' + token;
+  if (ip) h['cf-connecting-ip'] = ip;
   const req = new Request('https://panel.example.com' + path, {
     method, headers: h, body: body ? JSON.stringify(body) : undefined,
   });
@@ -75,11 +75,16 @@ console.log('\n── 1) سلامت و امنیت ──');
   ok('رمز غلط → 401 invalid_credentials', r.status === 401 && r.body.error === 'invalid_credentials');
 }
 
-console.log('\n── 2) ورود + محدودیت نرخ ──');
+console.log('\n── 2) ورود با رمز پیش‌فرض + محدودیت نرخ ──');
 let TOKEN = '';
 {
-  let r = await json(await call('POST', '/api/auth/login', { body: { password: 'test-password-123' } }));
-  ok('ورود موفق → توکن', r.status === 200 && !!r.body.data.token);
+  // وضعیت رمز پیش‌فرض (عمومی)
+  let r = await json(await call('GET', '/api/auth/default-status'));
+  ok('رمز پیش‌فرض در ابتدا فعال است', r.status === 200 && r.body.data.defaultActive === true);
+
+  // ورود با رمز پیش‌فرض داخلی (بدون هیچ متغیر محیطی!)
+  r = await json(await call('POST', '/api/auth/login', { body: { password: 'botpanel123' } }));
+  ok('ورود با رمز پیش‌فرض → توکن', r.status === 200 && !!r.body.data.token);
   TOKEN = r.body.data?.token || '';
 
   r = await json(await call('GET', '/api/auth/session', { token: TOKEN }));
@@ -89,14 +94,14 @@ let TOKEN = '';
   for (let i = 0; i < 5; i++) await call('POST', '/api/auth/login', { body: { password: 'nope' } });
   r = await json(await call('POST', '/api/auth/login', { body: { password: 'nope' } }));
   ok('محدودیت نرخ ورود → 429', r.status === 429 && r.body.error === 'rate_limited');
-  // ورود درست باید همچنان ممکن باشد؟ نه — پنجره قفل است؛ ولی کلید پس از موفقیت پاک می‌شود:
-  r = await json(await call('POST', '/api/auth/login', { body: { password: 'test-password-123' } }));
+  // ورود درست باید همچنین ممکن باشد؟ نه — پنجره قفل است؛ ولی کلید پس از موفقیت پاک می‌شود:
+  r = await json(await call('POST', '/api/auth/login', { body: { password: 'botpanel123' } }));
   ok('رمز درست در حالت قفل → هنوز 429 (اولویت ضد بروت‌فورس)', r.status === 429);
   // شبیه IP جدید
   const req = new Request('https://panel.example.com/api/auth/login', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'cf-connecting-ip': '2.2.2.2' },
-    body: JSON.stringify({ password: 'test-password-123' }),
+    body: JSON.stringify({ password: 'botpanel123' }),
   });
   const r2 = await json(await worker.fetch(req, ENV, CTX));
   ok('ورود از IP دیگر → 200', r2.status === 200);
@@ -190,6 +195,39 @@ console.log('\n── 7) وب‌هوک تنظیم/حذف (توکن فیک) ─�
 {
   let r = await json(await call('POST', '/api/settings/webhook', { token: TOKEN, body: { action: 'set' } }));
   ok('setWebhook با توکن فیک → خطای تلگرام', r.status === 400 && typeof r.body.error === 'string');
+}
+
+console.log('\n── 8) تغییر رمز عبور از پنل ──');
+{
+  // رمز فعلی غلط → رد
+  let r = await json(await call('POST', '/api/auth/change-password', { token: TOKEN, body: { currentPassword: 'wrong', newPassword: 'test-new-pass-456' } }));
+  ok('رمز فعلی غلط → wrong_password', r.body.error === 'wrong_password');
+
+  // رمز جدید کوتاه → رد
+  r = await json(await call('POST', '/api/auth/change-password', { token: TOKEN, body: { currentPassword: 'botpanel123', newPassword: 'short' } }));
+  ok('رمز جدید کوتاه → invalid_password', r.body.error === 'invalid_password');
+
+  // تغییر موفق
+  r = await json(await call('POST', '/api/auth/change-password', { token: TOKEN, body: { currentPassword: 'botpanel123', newPassword: 'test-new-pass-456' } }));
+  ok('تغییر رمز موفق', r.status === 200 && r.body.ok === true);
+
+  // ورود با رمز قدیمی → رد / با رمز جدید → ok (از IP تازه، چون IP اصلی در بخش ۲ قفل ضد بروت‌فورس است)
+  r = await json(await call('POST', '/api/auth/login', { body: { password: 'botpanel123' }, ip: '9.9.9.9' }));
+  ok('ورود با رمز قدیمی → 401', r.status === 401);
+  r = await json(await call('POST', '/api/auth/login', { body: { password: 'test-new-pass-456' }, ip: '9.9.9.9' }));
+  ok('ورود با رمز جدید → 200', r.status === 200);
+
+  // نشست فعلی معتبر می‌ماند، پیش‌فرض غیرفعال است
+  r = await json(await call('GET', '/api/auth/session', { token: TOKEN }));
+  ok('نشست فعلی پس از تغییر رمز معتبر ماند', r.status === 200);
+  r = await json(await call('GET', '/api/auth/default-status'));
+  ok('رمز پیش‌فرض غیرفعال شد', r.body.data.defaultActive === false);
+
+  // برگرداندن به پیش‌فرض برای تکرارپذیری تست‌ها
+  r = await json(await call('POST', '/api/auth/change-password', { token: TOKEN, body: { currentPassword: 'test-new-pass-456', newPassword: 'botpanel123' } }));
+  ok('بازگشت به رمز پیش‌فرض', r.status === 200);
+  r = await json(await call('POST', '/api/auth/login', { body: { password: 'botpanel123' }, ip: '9.9.9.9' }));
+  ok('ورود دوباره با پیش‌فرض → 200', r.status === 200);
 }
 
 console.log(`\n═══ نتیجه: ${passed} passed / ${failed} failed ═══\n`);

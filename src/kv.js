@@ -26,6 +26,7 @@ export const K = {
   USER: (id) => `user:${id}`,
   USER_PREFIX: 'user:',
   SESSION: (hash) => `session:${hash}`,
+  SESSION_PREFIX: 'session:',
   LOGIN_RL: (ip) => `rl:${ip}`,
   BROADCAST: (id) => `broadcast:${id}`,
   BROADCAST_INDEX: 'broadcast:index',

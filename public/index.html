@@ -78,6 +78,12 @@
       loginSub: 'برای مدیریت ربات وارد شوید', password: 'رمز عبور', passwordPh: '••••••••',
       signIn: 'ورود', signingIn: 'در حال ورود…', loginErr: 'رمز عبور نادرست است',
       rateLimited: 'تلاش‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید', fillPassword: 'رمز عبور را وارد کنید',
+      defPwHint: 'رمز پیش‌فرض اولیه: <b>botpanel123</b> — بعد از ورود از «تنظیمات ← امنیت و رمز عبور» تغییرش دهید',
+      security: 'امنیت و رمز عبور', currentPw: 'رمز فعلی', newPw: 'رمز جدید', newPw2: 'تکرار رمز جدید',
+      changePw: 'تغییر رمز عبور', pwChanged: 'رمز عبور تغییر کرد ✓', pwMinLen: 'رمز جدید باید حداقل ۶ کاراکتر باشد',
+      pwNoMatch: 'رمزهای جدید یکسان نیستند', wrongPw: 'رمز فعلی نادرست است',
+      sessionsNote: 'پس از تغییر رمز، همه دستگاه‌های دیگر از حساب خارج می‌شوند (جز همین نشست).',
+      forgotPw: 'فراموشی رمز',
       relogin: 'نشست منقضی شد؛ دوباره وارد شوید',
       // nav
       dashboard: 'داشبورد', users: 'کاربران', broadcast: 'ارسال همگانی', menuBuilder: 'منو و دکمه‌ها', settings: 'تنظیمات',
@@ -140,6 +146,12 @@
       loginSub: 'Sign in to manage your bot', password: 'Password', passwordPh: '••••••••',
       signIn: 'Sign in', signingIn: 'Signing in…', loginErr: 'Incorrect password',
       rateLimited: 'Too many attempts; try again in a few minutes', fillPassword: 'Please enter the password',
+      defPwHint: 'Initial default password: <b>botpanel123</b> — change it after login from “Settings ← Security & password”',
+      security: 'Security & password', currentPw: 'Current password', newPw: 'New password', newPw2: 'Repeat new password',
+      changePw: 'Change password', pwChanged: 'Password changed ✓', pwMinLen: 'New password must be at least 6 characters',
+      pwNoMatch: 'New passwords do not match', wrongPw: 'Current password is incorrect',
+      sessionsNote: 'After changing the password, all other devices are signed out (except this session).',
+      forgotPw: 'Forgot password',
       relogin: 'Session expired; please sign in again',
       dashboard: 'Dashboard', users: 'Users', broadcast: 'Broadcast', menuBuilder: 'Menus & Buttons', settings: 'Settings',
       logout: 'Log out', confirmLogout: 'Log out of the panel?',
@@ -408,6 +420,7 @@
       '</div>' +
       '<div class="' + CLS.card + ' p-6">' +
       (msg ? '<div class="mb-4 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs px-3 py-2.5">' + esc(msg) + '</div>' : '') +
+      '<div id="def-pw-hint" class="hidden mb-4 rounded-xl bg-sky-500/10 text-sky-700 dark:text-sky-300 text-xs px-3 py-2.5 leading-6"></div>' +
       '<label class="' + CLS.label + '" for="pw">' + t('password') + '</label>' +
       '<div class="relative">' +
       '<i data-lucide="lock" class="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3 text-slate-400"></i>' +
@@ -422,6 +435,13 @@
     refreshIcons();
     $('pw').focus();
     _crR(document.querySelector('#app .max-w-sm') || undefined); // فوتر ناشر زیر کارت ورود
+    // نمایش راهنمای رمز پیش‌فرض فقط تا وقتی از پنل عوض نشده باشد
+    fetch('/api/auth/default-status').then((x) => x.json()).then((j) => {
+      if (j && j.ok && j.data.defaultActive) {
+        const h = $('def-pw-hint');
+        if (h) { h.innerHTML = '🔑 ' + t('defPwHint'); h.classList.remove('hidden'); }
+      }
+    }).catch(() => {});
   }
 
   async function doLogin() {
@@ -1116,6 +1136,19 @@
       '<button data-act="saveGeneral" class="' + CLS.btnP + '"><i data-lucide="save" class="w-4 h-4"></i>' + t('save') + '</button></div>' +
 
       '<div class="space-y-4">' +
+      // ── امنیت و رمز عبور ──
+      '<div class="' + CLS.card + ' p-5 md:p-6">' +
+      '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="key-round" class="w-4 h-4 text-brand-500"></i>' + t('security') + '</h3>' +
+      '<div class="space-y-3">' +
+      '<div><label class="' + CLS.label + '">' + t('currentPw') + '</label>' +
+      '<input id="st-cur-pw" type="password" autocomplete="current-password" class="' + CLS.input + '"></div>' +
+      '<div class="grid sm:grid-cols-2 gap-3">' +
+      '<div><label class="' + CLS.label + '">' + t('newPw') + '</label>' +
+      '<input id="st-new-pw" type="password" autocomplete="new-password" class="' + CLS.input + '"></div>' +
+      '<div><label class="' + CLS.label + '">' + t('newPw2') + '</label>' +
+      '<input id="st-new-pw2" type="password" autocomplete="new-password" class="' + CLS.input + '"></div></div>' +
+      '<p class="text-[11px] text-slate-400">' + t('sessionsNote') + '</p></div>' +
+      '<button data-act="changePw" class="' + CLS.btnP + ' mt-4"><i data-lucide="key-round" class="w-4 h-4"></i>' + t('changePw') + '</button></div>' +
       // ── وب‌هوک ──
       '<div class="' + CLS.card + ' p-5 md:p-6">' +
       '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="webhook" class="w-4 h-4 text-brand-500"></i>' + t('webhookMgmt') + '</h3>' +
@@ -1356,6 +1389,25 @@
         toast(d.action === 'set' ? t('webhookSetOk') : t('webhookDelOk'), 'success');
         loadSettings();
       } catch (e) { toast(e.message, 'error'); }
+    },
+
+    // تغییر رمز عبور پنل
+    changePw: async () => {
+      const cur = $('st-cur-pw').value;
+      const nw = $('st-new-pw').value;
+      const nw2 = $('st-new-pw2').value;
+      if (nw.length < 6) return toast(t('pwMinLen'), 'error');
+      if (nw !== nw2) return toast(t('pwNoMatch'), 'error');
+      const btn = document.querySelector('[data-act="changePw"]');
+      btn.disabled = true;
+      try {
+        await api('/auth/change-password', { method: 'POST', body: { currentPassword: cur, newPassword: nw } });
+        toast(t('pwChanged'), 'success');
+        $('st-cur-pw').value = ''; $('st-new-pw').value = ''; $('st-new-pw2').value = '';
+      } catch (e) {
+        toast(e.message === 'wrong_password' ? t('wrongPw') : e.message === 'invalid_password' ? t('pwMinLen') : e.message, 'error');
+      }
+      btn.disabled = false;
     },
   };
 

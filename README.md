@@ -72,7 +72,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 
 - وب‌هوک فقط با هدر مخفی `X-Telegram-Bot-Api-Secret-Token` قبول می‌شود (جعل درخواست ناممکن است)
 - پردازش آپدیت در `waitUntil` → پاسخ فوری ۲۰۰ به تلگرام (بدون ارسال مجدد آپدیت)
-- رمز پنل در Wrangler Secrets؛ نشست‌ها فقط به‌صورت **هش SHA-256** در KV
+- رمز پنل به‌صورت **هش SHA-256** در KV (پیش‌فرض `botpanel123`، تغییر فقط از پنل)؛ پس از تغییر رمز همه نشست‌های دیگر بی‌اعتبار می‌شوند
 - مقایسه رمز زمان-ثابت + قفل ضد بروت‌فورس (۵ تلاش / ۱۰ دقیقه / IP)
 - توکن ربات در API همیشه ماسک‌شده برمی‌گردد
 
@@ -91,7 +91,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 
 | بخش | توضیح |
 |---|---|
-| 🔐 احراز هویت امن | رمز در Wrangler Secrets، مقایسه timing-safe، نشست ۷روزه، محدودیت نرخ ورود |
+| 🔐 احراز هویت امن | رمز پیش‌فرض داخلی `botpanel123` — تغییر از «تنظیمات ← امنیت و رمز عبور»، ذخیره به‌صورت هش SHA-256 در KV، مقایسه timing-safe، نشست ۷روزه، محدودیت نرخ ورود، ابطال نشست‌های دیگر پس از تغییر رمز |
 | 📊 داشبورد | آمار کلی، **نشانگر وضعیت لحظه‌ای ورکر** (تأخیر + مرکز داده + پینگ هر ۳۰ ثانیه)، وضعیت وب‌هوک تلگرام، کاربران اخیر |
 | 👥 مدیریت کاربران | صفحه‌بندی cursor بومی KV، جستجو، مسدود/آزادسازی با دلیل، پیام مستقیم، جزئیات کامل |
 | 📢 موتور ارسال همگانی | متن + HTML/MarkdownV2 + دکمه‌های URL، هدف‌گیری (همه/فعال ۷ روز/فعال ۳۰ روز)، Rate-Limit قابل تنظیم، پیشرفت زنده، توقف/ادامه |
@@ -141,6 +141,10 @@ telegram-bot-panel/
 
 > **📦 ساخت ربات:** در تلگرام به [@BotFather](https://t.me/BotFather) → `/newbot` → نام و یوزرنیم (با پسوند `bot`) بدهید → **توکن** (`123456:ABC...`) را کپی کنید.
 
+> 🔑 **رمز پیش‌فرض ورود به پنل: `botpanel123`** — نیازی به تنظیم هیچ متغیری نیست.
+> بعد از اولین ورود، حتماً از **«تنظیمات ← امنیت و رمز عبور»** آن را تغییر دهید (رمز جدید به‌صورت هش SHA-256 در KV ذخیره می‌شود و همه دستگاه‌های دیگر از حساب خارج می‌شوند).
+> 🔄 رمز را فراموش کردید؟ در داشبورد کلادفلر ← **KV ← نمایش namespace ← حذف کلید `admin_auth`** → رمز به پیش‌فرض `botpanel123` برمی‌گردد.
+
 ### روش ۱: دستی از مرورگر (بدون ترمینال) 🖥️
 
 اگر با ترمینال راحت نیستید، همه‌چیز از داخل مرورگر انجام می‌شود:
@@ -155,13 +159,14 @@ telegram-bot-panel/
    داشبورد کلادفلر ← **Workers & Pages ← Create ← Workers/Projects** ← تب **Import a repository** ← **Connect to Git** ← گیت‌هاب را مجاز کنید ← مخزن `telegram-bot-panel` را انتخاب کنید ← **Begin setup** (تنظیمات پیش‌فرض درست است؛ Deploy command همان `npx wrangler deploy` است) ← **Save and Deploy**.
    ✅ از این به بعد هر commit/push روی مخزن، **خودکار دیپلوی** می‌شود (CI/CD داخلی کلادفلر).
 
-4. **تنظیم رمزها در داشبورد**
-   روی Worker ساخته‌شده کلیک کنید ← **Settings ← Variables and Secrets ← Add** ← سه متغیر از نوع **Secret** بسازید:
+4. **تنظیم رازها در داشبورد**
+   روی Worker ساخته‌شده کلیک کنید ← **Settings ← Variables and Secrets ← Add** ← دو متغیر از نوع **Secret** بسازید:
    | نام | مقدار |
    |---|---|
-   | `ADMIN_PASSWORD` | رمز قوی ورود پنل |
    | `WEBHOOK_SECRET` | رشته تصادفی طولانی (مثلاً از [random.org](https://www.random.org/strings/) ۴۰ کاراکتر) |
    | `BOT_TOKEN` | توکن BotFather (اختیاری — از پنل هم می‌شود) |
+
+   💡 رمز ورود پنل **نیازی به متغیر ندارد** — با پیش‌فرض `botpanel123` وارد شوید و بعداً از پنل تغییرش دهید.
    سپس **Deployments ← … ← Redeploy** تا رازها اعمال شوند.
 
 5. **اتصال ربات**
@@ -178,13 +183,12 @@ npm install
 
 npx wrangler login                                  # ۱) ورود به کلادفلر (مرورگر باز می‌شود)
 npx wrangler kv namespace create BOT_KV             # ۲) ساخت KV → id خروجی را در wrangler.toml بگذارید
-npx wrangler secret put ADMIN_PASSWORD              # ۳) رمز ورود پنل
-npx wrangler secret put WEBHOOK_SECRET              #    راز وب‌هوک (openssl rand -hex 32)
+npx wrangler secret put WEBHOOK_SECRET              # ۳) راز وب‌هوک (openssl rand -hex 32)
 npx wrangler secret put BOT_TOKEN                   #    توکن BotFather (اختیاری)
 npm run deploy                                      # ۴) دیپلوی 🚀
 ```
 
-سپس در پنل وارد شوید ← **تنظیمات ← «تنظیم وب‌هوک»** ← در تلگرام `/start` بفرستید — و با `/id` آیدی خود را در «ادمین‌های ربات» ذخیره کنید. تمام!
+سپس با رمز پیش‌فرض **`botpanel123`** وارد شوید ← بلافاصله از **«تنظیمات ← امنیت و رمز عبور»** رمز جدید بگذارید ← **«تنظیم وب‌هوک»** را بزنید ← در تلگرام `/start` بفرستید — و با `/id` آیدی خود را در «ادمین‌های ربات» ذخیره کنید. تمام!
 
 ## 🖥️ توسعه لوکال
 
@@ -246,7 +250,7 @@ This project ships a **working Telegram bot + full admin panel** running togethe
 
 ### Security
 
-Webhook accepted only with the secret `X-Telegram-Bot-Api-Secret-Token` header · updates processed in `waitUntil` with instant 200s · panel password in Wrangler Secrets · sessions stored as SHA-256 hashes only · timing-safe password comparison + brute-force lockout (5 tries / 10 min / IP) · bot token always masked in API responses.
+Webhook accepted only with the secret `X-Telegram-Bot-Api-Secret-Token` header · updates processed in `waitUntil` with instant 200s · panel password stored as a **SHA-256 hash in KV** (default `botpanel123`, changeable only from the panel; other sessions are invalidated on change) · timing-safe password comparison + brute-force lockout (5 tries / 10 min / IP) · bot token always masked in API responses.
 
 ### Extending the bot
 
@@ -261,7 +265,7 @@ Webhook accepted only with the secret `X-Telegram-Bot-Api-Secret-Token` header �
 
 | Area | Details |
 |---|---|
-| 🔐 Secure auth | Secrets-only password, timing-safe compare, 7-day sessions, login rate-limiting |
+| 🔐 Secure auth | Built-in default password `botpanel123` — change it from “Settings ← Security & password”, stored as a SHA-256 hash in KV, timing-safe compare, 7-day sessions, login rate-limiting, other sessions invalidated on password change |
 | 📊 Dashboard | Stats, **live worker status** (latency + data center + 30s pings), Telegram webhook health, recent users |
 | 👥 User management | KV-native cursor pagination, search, ban/unban, direct messages, full details |
 | 📢 Broadcast engine | Text + HTML/MarkdownV2 + URL buttons, targeting (all / active 7d / 30d), tunable rate limiting, live progress |
@@ -275,13 +279,18 @@ Shared prerequisite for both:
 
 > **📦 Create the bot:** on Telegram, talk to [@BotFather](https://t.me/BotFather) → `/newbot` → choose a name and a `bot`-suffixed username → copy the **token** (`123456:ABC...`).
 
+> 🔑 **Default panel password: `botpanel123`** — no environment variable needed.
+> After your first login, change it from **“Settings ← Security & password”** (the new password is stored as a SHA-256 hash in KV and all other devices are signed out).
+> 🔄 Forgot it? In the Cloudflare dashboard → **KV → view the namespace → delete the `admin_auth` key** → the password resets to `botpanel123`.
+
 ### Method 1: Manual, browser-only (no terminal) 🖥️
 
 1. **Create the KV database** — [dash.cloudflare.com](https://dash.cloudflare.com) → **Storage & Databases → KV → Create namespace** → name it `botpanel-kv` → copy the generated **ID**.
 2. **Edit the config on GitHub** — open `wrangler.toml` in this repo → click the pencil ✏️ → replace `REPLACE_WITH_YOUR_KV_NAMESPACE_ID` with your ID → **Commit changes**.
 3. **Connect the repo to Cloudflare** — dashboard → **Workers & Pages → Create → Workers/Projects** → **Import a repository** tab → **Connect to Git** → authorize GitHub → pick `telegram-bot-panel` → **Begin setup** (defaults are fine; deploy command is `npx wrangler deploy`) → **Save and Deploy**.
    ✅ From now on, every git push **auto-deploys** (built-in Cloudflare CI/CD).
-4. **Add secrets in the dashboard** — open the Worker → **Settings → Variables and Secrets → Add** (type **Secret**): `ADMIN_PASSWORD` (strong panel password), `WEBHOOK_SECRET` (long random string), `BOT_TOKEN` (optional). Then **Deployments → … → Redeploy**.
+4. **Add secrets in the dashboard** — open the Worker → **Settings → Variables and Secrets → Add** (type **Secret**): `WEBHOOK_SECRET` (long random string) and `BOT_TOKEN` (optional). Then **Deployments → … → Redeploy**.
+   💡 The panel password needs **no variable** — sign in with the default `botpanel123` and change it from the panel later.
 5. **Connect the bot** — open `https://<worker>.<subdomain>.workers.dev` → log in → **Settings → “Set webhook”** → send `/start` to your bot on Telegram. 🎉
 
 ### Method 2: Terminal (CLI) ⌨️
@@ -295,20 +304,19 @@ npm install
 
 npx wrangler login                                  # 1) sign in to Cloudflare
 npx wrangler kv namespace create BOT_KV             # 2) create KV → put id in wrangler.toml
-npx wrangler secret put ADMIN_PASSWORD              # 3) panel password
-npx wrangler secret put WEBHOOK_SECRET              #    webhook secret (openssl rand -hex 32)
+npx wrangler secret put WEBHOOK_SECRET              # 3) webhook secret (openssl rand -hex 32)
 npx wrangler secret put BOT_TOKEN                   #    BotFather token (optional)
 npm run deploy                                      # 4) deploy 🚀
 ```
 
-Then open the panel → log in → **Settings → “Set webhook”** → send `/start` to the bot — grab your ID with `/id` and save it under “Bot admin IDs”. Done!
+Then log in with the default password **`botpanel123`** → immediately set a new one from **“Settings ← Security & password”** → click **“Set webhook”** → send `/start` to the bot — grab your ID with `/id` and save it under “Bot admin IDs”. Done!
 
 ## 🖥️ Local development
 
 ```bash
-cp .dev.vars.example .dev.vars    # local password: change-me-dev
+cp .dev.vars.example .dev.vars    # sign in with the default: botpanel123
 npm run dev                       # → http://localhost:8787
-npm run smoke                     # 29 automated tests
+npm run smoke                     # 39 automated tests
 ```
 
 ## 🔌 API (summary)
