@@ -2120,9 +2120,13 @@
   function render() {
     clearTimers();
     const h = (location.hash || '').replace(/^#\/?/, '');
-    S.route = ROUTES.includes(h) ? h : 'dashboard';
+    const route = ROUTES.includes(h) ? h : 'dashboard';
+    const routeChanged = route !== S.route; // تغییر زبان/تم هم render را صدا می‌زند؛ فقط جابه‌جایی بخش باید به بالا اسکرول کند
+    S.route = route;
     if (!S.token) { renderLogin(); return; }
     renderShell();
+    // با تغییر بخش (نوار پایین موبایل / سایدبار / دکمه‌های میانبر) صفحه نرم به بالا اسکرول می‌شود
+    if (routeChanged) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   window.addEventListener('hashchange', render);
 

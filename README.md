@@ -112,7 +112,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 | 🔒 قفل کانال (عضویت اجباری) | تا کاربر عضو نشود ربات فعال نمی‌شود؛ تشخیص با `getChatMember` (کش ۱۵ دقیقه)، دکمه «عضو شدم»، معافیت ادمین‌ها |
 | ⚙️ تنظیمات | توکن ربات (ماسک‌شده)، زبان پیش‌فرض، **قفل کانال**، تنظیم/حذف وب‌هوک با یک کلیک، تیونینگ ارسال |
 | 🌍 پنل دو زبانه | سوئیچ کامل فا/EN با RTL/LTR، حالت تاریک/روشن، موبایل‌فرست با **صفحه ثابت بدون زوم** |
-| 📱 ریسپانسیو کامل موبایل | **قفل سرریز افقی** (هیچ اسکرول چپ/راستی در هیچ صفحه‌ای وجود ندارد)؛ **جدول کاربران در موبایل به‌صورت کارت‌های تک‌ستونی** با همه اطلاعات (نام، آیدی، زبان، وضعیت، عملیات)؛ اعداد آمار و متن‌های بلند با truncate/break |
+| 📱 ریسپانسیو کامل موبایل | **قفل سرریز افقی** (هیچ اسکرول چپ/راستی در هیچ صفحه‌ای وجود ندارد)؛ **جدول کاربران در موبایل به‌صورت کارت‌های تک‌ستونی** با همه اطلاعات (نام، آیدی، زبان، وضعیت، عملیات)؛ اعداد آمار و متن‌های بلند با truncate/break؛ **با تغییر بخش از نوار پایین، صفحه نرم به بالا اسکرول می‌شود** |
 
 ## 🏗️ معماری
 
@@ -299,7 +299,7 @@ Webhook accepted only with the secret `X-Telegram-Bot-Api-Secret-Token` header �
 | 🔒 Channel lock (force-subscribe) | The bot stays locked until the user joins your channel; detection via `getChatMember` (15-min cache), “I joined” button, admins exempt |
 | ⚙️ Settings | Bot token (masked), default language, **channel lock**, one-click webhook management |
 | 🌍 Bilingual panel | Full FA/EN with RTL/LTR, dark/light, mobile-first with a **fixed, no-zoom viewport** |
-| 📱 Fully responsive mobile | **Horizontal-overflow lock** (no left/right scrolling on any page); the **users table turns into single-column cards on phones** showing every field (name, ID, language, status, actions); long numbers/texts truncate gracefully |
+| 📱 Fully responsive mobile | **Horizontal-overflow lock** (no left/right scrolling on any page); the **users table turns into single-column cards on phones** showing every field (name, ID, language, status, actions); long numbers/texts truncate gracefully; **switching sections from the bottom bar smoothly scrolls the page to the top** |
 
 ## 🚀 Setup — two methods
 
