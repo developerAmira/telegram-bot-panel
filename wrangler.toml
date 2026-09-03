@@ -13,7 +13,7 @@ workers_dev = true
 #   npx wrangler kv namespace create BOT_KV
 [[kv_namespaces]]
 binding = "BOT_KV"
-id = "fd01b7322d5a4c09b0ff439e1ef2ada8"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
 
 # ── فایل‌های استاتیک پنل (SPA) ─────────────────────────────────────
 # فایل‌های پوشه public به‌صورت استاتیک سرو می‌شوند؛
