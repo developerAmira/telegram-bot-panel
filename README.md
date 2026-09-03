@@ -32,7 +32,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 | ![ویرایشگر دکمه‌ها](assets/screens/menu-buttons-fa-dark.jpg) | ![تنظیمات](assets/screens/settings-fa-dark.jpg) |
 | **ویرایشگر دکمه با ردیف/ستون + شبیه‌ساز · Button editor + simulator** | **زبان ربات و تنظیمات · Settings** |
 | ![انگلیسی روشن](assets/screens/dashboard-en-light.jpg) | ![موبایل](assets/screens/users-mobile-fa-dark.jpg) |
-| **حالت روشن + EN · Light + English** | **موبایل بدون زوم · Mobile** |
+| **حالت روشن + EN · Light + English** | **موبایل: کارت‌های کاربر + فوتر رنگی · Mobile: user cards + footer** |
 
 ---
 
@@ -112,6 +112,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 | 🔒 قفل کانال (عضویت اجباری) | تا کاربر عضو نشود ربات فعال نمی‌شود؛ تشخیص با `getChatMember` (کش ۱۵ دقیقه)، دکمه «عضو شدم»، معافیت ادمین‌ها |
 | ⚙️ تنظیمات | توکن ربات (ماسک‌شده)، زبان پیش‌فرض، **قفل کانال**، تنظیم/حذف وب‌هوک با یک کلیک، تیونینگ ارسال |
 | 🌍 پنل دو زبانه | سوئیچ کامل فا/EN با RTL/LTR، حالت تاریک/روشن، موبایل‌فرست با **صفحه ثابت بدون زوم** |
+| 📱 ریسپانسیو کامل موبایل | **قفل سرریز افقی** (هیچ اسکرول چپ/راستی در هیچ صفحه‌ای وجود ندارد)؛ **جدول کاربران در موبایل به‌صورت کارت‌های تک‌ستونی** با همه اطلاعات (نام، آیدی، زبان، وضعیت، عملیات)؛ اعداد آمار و متن‌های بلند با truncate/break |
 
 ## 🏗️ معماری
 
@@ -298,6 +299,7 @@ Webhook accepted only with the secret `X-Telegram-Bot-Api-Secret-Token` header �
 | 🔒 Channel lock (force-subscribe) | The bot stays locked until the user joins your channel; detection via `getChatMember` (15-min cache), “I joined” button, admins exempt |
 | ⚙️ Settings | Bot token (masked), default language, **channel lock**, one-click webhook management |
 | 🌍 Bilingual panel | Full FA/EN with RTL/LTR, dark/light, mobile-first with a **fixed, no-zoom viewport** |
+| 📱 Fully responsive mobile | **Horizontal-overflow lock** (no left/right scrolling on any page); the **users table turns into single-column cards on phones** showing every field (name, ID, language, status, actions); long numbers/texts truncate gracefully |
 
 ## 🚀 Setup — two methods
 
@@ -366,6 +368,10 @@ KV counters are approximate (no atomic increments → use D1 for exact stats) ·
 [![@x.amirrezaa1](assets/instagram-badge.svg)](https://instagram.com/x.amirrezaa1)
 
 **تلگرام | Telegram:** [@developer_as](https://t.me/developer_as) · **اینستاگرام | Instagram:** [@x.amirrezaa1](https://instagram.com/x.amirrezaa1)
+
+پایین همه صفحات پنل، نوار رنگی اعتبار با متن «**توسعه یافته و ساخته شده توسط aMirsEdighian**» به‌همراه لوگوی تلگرام و اینستاگرام نمایش داده می‌شود (کدشده و غیرقابل‌ویرایش).
+
+A distinct gradient credit band — *“Developed & built by aMirsEdighian”* — with Telegram/Instagram logos is shown at the bottom of every panel page (obfuscated & tamper-proof).
 
 ساخته‌شده با ❤️ روی Cloudflare Workers · Made with ❤️ on Cloudflare Workers
 

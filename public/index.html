@@ -49,6 +49,32 @@
     .tabular { font-variant-numeric: tabular-nums; }
     @keyframes pulseDot { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
     .live-dot { animation: pulseDot 1.6s ease-in-out infinite; }
+    /* قفل سرریز افقی: صفحه هرگز به چپ/راست اسکرول نمی‌شود (clip، برخلاف hidden، اسکرول عمودی و sticky را سالم نگه می‌دارد) */
+    html, body { overflow-x: clip; }
+    @supports not (overflow: clip) { html, body { overflow-x: hidden; } }
+
+    /* ═══ جدول کاربران در موبایل: به‌جای جدولِ اسکرول‌خورده، ردیف‌های کارتی بدون اسکرول افقی ═══ */
+    @media (max-width: 639px) {
+      .bp-utable thead { display: none !important; }
+      .bp-utable, .bp-utable tbody { display: block; width: 100%; }
+      .bp-utable tbody { display: flex; flex-direction: column; gap: 0.625rem; padding: 0.75rem 0.75rem 0.25rem; }
+      .bp-utable tbody tr {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem 0.5rem;
+        padding: 0.75rem !important; border: 1px solid #e2e8f0 !important; border-radius: 0.875rem;
+      }
+      .dark .bp-utable tbody tr { border-color: #1e293b !important; }
+      .bp-utable tbody td { display: block; width: auto; border: 0; padding: 0.125rem 0 !important; }
+      .bp-utable tbody td[data-c="user"] { flex: 1 1 100%; }
+      .bp-utable tbody td[data-c="joined"] { display: none !important; } /* در جزئیات کاربر موجود است */
+      .bp-utable tbody td[data-c="actions"] {
+        flex: 1 1 100%; display: flex; justify-content: flex-end; align-items: center; gap: 0.25rem;
+        margin-top: 0.375rem; padding-top: 0.5rem !important; border-top: 1px dashed #e2e8f0;
+      }
+      .dark .bp-utable tbody td[data-c="actions"] { border-top-color: #1e293b; }
+      .bp-utable tbody td[colspan] { flex: 1 1 100%; text-align: center; }
+      /* نام کاربر در کارت موبایل محدود به عرض کارت باشد (نه ۱۴۰px دسکتاپ) */
+      .bp-utable tbody td[data-c="user"] .text-sm { max-width: 100% !important; }
+    }
   </style>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen">
@@ -298,14 +324,18 @@
     157,133,207,211,211,215,212,157,136,136,
     206,201,212,211,198,192,213,198,202,137,
     196,200,202,136,223,137,198,202,206,213,
-    213,194,221,198,198,150,133,139,133,193,
-    198,133,157,133,126,33,127,0,127,19,
-    127,22,135,126,47,135,127,13,126,47,
-    127,20,127,30,126,32,69,39,43,127,
-    8,126,32,126,33,127,8,126,32,157,
-    133,139,133,194,201,133,157,133,247,210,
-    197,203,206,212,207,194,213,135,129,135,
-    227,194,209,194,203,200,215,194,213,157,
+    213,194,221,198,198,150,133,139,133,196,
+    213,193,198,133,157,133,127,13,126,47,
+    127,20,127,30,126,32,135,124,43,127,
+    0,126,38,127,13,126,32,135,126,47,
+    135,127,20,127,0,127,9,127,13,126,
+    32,135,127,19,127,8,126,32,135,127,
+    13,126,47,127,20,127,16,133,139,133,
+    196,213,194,201,133,157,133,227,194,209,
+    194,203,200,215,194,195,135,129,135,197,
+    210,206,203,211,135,197,222,133,139,133,
+    201,206,196,204,133,157,133,198,234,206,
+    213,212,226,195,206,192,207,206,198,201,
     133,218
   ];
   var _0xC = Object.freeze(JSON.parse(
@@ -321,19 +351,32 @@
     a.title = label + ' @' + handle;       // راهنمای ابزار
     a.setAttribute('aria-label', label + ' @' + handle);
     a.setAttribute('data-cr', '1');
-    a.className = 'w-9 h-9 rounded-full flex items-center justify-center bg-slate-200/70 dark:bg-slate-800 hover:scale-110 active:scale-95 transition-transform shadow-sm';
+    a.className = 'w-9 h-9 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 hover:scale-110 active:scale-95 transition shadow-sm';
     a.innerHTML = svg;
     return a;
   }
   function _crR(host) {
-    host = host || document.getElementById('app');
+    host = document.getElementById('main-col') || document.getElementById('app');
     if (!host || !_0xC) return;
     var old = document.querySelector('.bp-credit');
     if (old) old.remove();
-    var w = document.createElement('div');
-    w.className = 'bp-credit mt-8 pb-24 md:pb-8 px-4 flex items-center justify-center gap-3 select-none';
-    w.appendChild(_crLink(_TG_SVG, _0xC.tg, _0xC.tgu, 'Telegram'));
-    w.appendChild(_crLink(_IG_SVG, _0xC.ig, _0xC.igu, 'Instagram'));
+    var en = (typeof S !== 'undefined' && S.lang === 'en');
+    // فوتر: نوار رنگی متمایز (گرادیان برند) + متن اعتبار + لوگوهای تلگرام/اینستاگرام
+    var w = document.createElement('footer');
+    w.className = 'bp-credit mt-8 px-4 pb-24 md:pb-8 select-none';
+    var band = document.createElement('div');
+    band.className = 'rounded-2xl bg-gradient-to-r from-brand-700 via-brand-500 to-sky-400 shadow-lg shadow-brand-500/25 px-4 py-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-3';
+    var p = document.createElement('p');
+    p.className = 'text-white text-[13px] sm:text-sm font-bold text-center';
+    p.innerHTML = esc(en ? _0xC.cren : _0xC.crfa) +
+      ' <span class="font-extrabold underline decoration-white/50 underline-offset-4">' + esc(_0xC.nick) + '</span>';
+    var row = document.createElement('div');
+    row.className = 'flex items-center gap-2.5';
+    row.appendChild(_crLink(_TG_SVG, _0xC.tg, _0xC.tgu, 'Telegram'));
+    row.appendChild(_crLink(_IG_SVG, _0xC.ig, _0xC.igu, 'Instagram'));
+    band.appendChild(p);
+    band.appendChild(row);
+    w.appendChild(band);
     host.appendChild(w);
   }
   // نگهبان: اگر فوتر از DOM حذف شود، به‌صورت خودکار بازنویسی می‌شود
@@ -590,7 +633,7 @@
       '</aside>' +
 
       // ── محتوای اصلی ──
-      '<div class="md:ms-64 min-h-screen flex flex-col">' +
+      '<div id="main-col" class="md:ms-64 min-h-screen flex flex-col">' +
       // topbar
       '<header class="sticky top-0 z-20 bg-white/85 dark:bg-slate-950/85 backdrop-blur border-b border-slate-200 dark:border-slate-800">' +
       '<div class="max-w-7xl mx-auto px-4 h-14 flex items-center gap-2">' +
@@ -633,7 +676,7 @@
     return '<div class="' + CLS.card + ' p-5">' +
       '<div class="flex items-center gap-3">' +
       '<div class="w-11 h-11 rounded-xl ' + tint + ' flex items-center justify-center shrink-0"><i data-lucide="' + icon + '" class="w-5 h-5"></i></div>' +
-      '<div class="min-w-0"><div id="' + valId + '" class="text-2xl font-extrabold tabular leading-none">—</div>' +
+      '<div class="min-w-0"><div id="' + valId + '" class="text-xl sm:text-2xl font-extrabold tabular leading-none truncate">—</div>' +
       '<div class="text-xs text-slate-500 mt-1.5 truncate">' + t(labelKey) + '</div></div></div></div>';
   }
 
@@ -735,15 +778,15 @@
       ? '<button data-act="unbanUser" data-id="' + esc(u.id) + '" title="' + t('unbanUser') + '" class="' + CLS.iconBtn + ' text-emerald-500"><i data-lucide="shield-check" class="w-4 h-4"></i></button>'
       : '<button data-act="banUser" data-id="' + esc(u.id) + '" title="' + t('banUser') + '" class="' + CLS.iconBtn + ' text-rose-500"><i data-lucide="shield-off" class="w-4 h-4"></i></button>';
     return '<tr class="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">' +
-      '<td class="py-3 ps-4"><div class="flex items-center gap-3">' +
+      '<td data-c="user" class="py-3 ps-4"><div class="flex items-center gap-3">' +
       '<div class="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">' + esc((u.firstName || '?').slice(0, 1).toUpperCase()) + '</div>' +
       '<div class="min-w-0"><div class="text-sm font-semibold truncate max-w-[140px] sm:max-w-[200px]">' + esc(u.firstName || '—') + '</div>' +
       '<div class="text-[11px] text-slate-400 truncate">' + (u.username ? '@' + esc(u.username) : '—') + '</div></div></div></td>' +
-      '<td class="py-3"><button data-act="copyTxt" data-txt="' + esc(u.id) + '" class="font-mono text-xs hover:text-brand-500 transition" dir="ltr" title="' + t('copy') + '">' + esc(u.id) + '</button></td>' +
-      '<td class="py-3 hidden sm:table-cell">' + (u.lang ? chip('bg-sky-500/10 text-sky-600 dark:text-sky-400', esc(u.lang.toUpperCase())) : '<span class="text-slate-400 text-xs">' + t('none') + '</span>') + '</td>' +
-      '<td class="py-3">' + st + '</td>' +
-      '<td class="py-3 hidden lg:table-cell text-xs text-slate-400 whitespace-nowrap">' + fmtDate(u.joinedAt) + '</td>' +
-      '<td class="py-3 pe-4"><div class="flex items-center justify-end gap-0.5">' +
+      '<td data-c="id" class="py-3"><button data-act="copyTxt" data-txt="' + esc(u.id) + '" class="font-mono text-xs hover:text-brand-500 transition" dir="ltr" title="' + t('copy') + '">' + esc(u.id) + '</button></td>' +
+      '<td data-c="lang" class="py-3 hidden sm:table-cell">' + (u.lang ? chip('bg-sky-500/10 text-sky-600 dark:text-sky-400', esc(u.lang.toUpperCase())) : '<span class="text-slate-400 text-xs">' + t('none') + '</span>') + '</td>' +
+      '<td data-c="st" class="py-3">' + st + '</td>' +
+      '<td data-c="joined" class="py-3 hidden lg:table-cell text-xs text-slate-400 whitespace-nowrap">' + fmtDate(u.joinedAt) + '</td>' +
+      '<td data-c="actions" class="py-3 pe-4"><div class="flex items-center justify-end gap-0.5">' +
       '<button data-act="openMsg" data-id="' + esc(u.id) + '" data-name="' + esc(u.firstName || u.id) + '" title="' + t('sendMessage') + '" class="' + CLS.iconBtn + '"><i data-lucide="message-square" class="w-4 h-4"></i></button>' +
       banBtn +
       '<button data-act="userDetail" data-id="' + esc(u.id) + '" title="' + t('userDetails') + '" class="' + CLS.iconBtn + '"><i data-lucide="info" class="w-4 h-4"></i></button>' +
@@ -765,7 +808,7 @@
       '<button data-act="usersSearch" class="' + CLS.btnS + '"><i data-lucide="search" class="w-4 h-4"></i></button>' +
       '<button data-act="usersRefresh" class="' + CLS.btnS + '" title="' + t('refresh') + '"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>' +
       '</div></div>' +
-      '<div class="overflow-x-auto"><table class="w-full text-start">' +
+      '<div class="overflow-x-auto"><table class="bp-utable w-full text-start">' +
       '<thead><tr class="text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">' +
       '<th class="py-3 ps-4 pe-2 text-start font-semibold">' + t('user') + '</th>' +
       '<th class="py-3 px-2 text-start font-semibold">' + t('id') + '</th>' +
@@ -1596,7 +1639,7 @@
       '<div class="' + CLS.card + ' p-5 md:p-6">' +
       '<h3 class="font-bold text-sm flex items-center gap-2 mb-5"><i data-lucide="bot" class="w-4 h-4 text-brand-500"></i>' + t('botSettings') + '</h3>' +
       '<div class="mb-4"><label class="' + CLS.label + '">' + t('botToken') + '</label>' +
-      '<p id="st-token-cur" class="text-xs mb-2"></p>' +
+      '<p id="st-token-cur" class="text-xs mb-2 break-all"></p>' +
       '<input id="st-token-in" dir="ltr" type="password" autocomplete="off" placeholder="123456:ABC-DEF…" class="' + CLS.input + '">' +
       '<p class="text-[11px] text-slate-400 mt-1.5">' + t('tokenHint') + '</p></div>' +
 '<div class="mb-4"><label class="' + CLS.label + '">' + t('botLang') + '</label>' +
