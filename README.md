@@ -25,12 +25,14 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 
 | | |
 |---|---|
-| ![ورود](assets/screens/login-fa-dark.jpg) | ![داشبورد انگلیسی + حالت روشن](assets/screens/dashboard-en-light.jpg) |
-| **ورود امن · Secure login** | **حالت روشن + انگلیسی · Light mode + EN** |
-| ![کاربران](assets/screens/users-fa-dark.jpg) | ![ارسال همگانی](assets/screens/broadcast-fa-dark.jpg) |
-| **مدیریت کاربران · Users** | **موتور ارسال همگانی · Broadcast** |
-| ![سازنده منو + شبیه‌ساز](assets/screens/menu-fa-dark.jpg) | ![نسخه موبایل](assets/screens/users-mobile-fa-dark.jpg) |
-| **سازنده منو و شبیه‌ساز زنده · Menu builder + simulator** | **موبایل‌فرست · Mobile-first** |
+| ![ورود](assets/screens/login-fa-dark.jpg) | ![داشبورد](assets/screens/dashboard-fa-dark.jpg) |
+| **ورود امن · Secure login** | **داشبورد و وضعیت زنده · Dashboard** |
+| ![کاربران](assets/screens/users-fa-dark.jpg) | ![نظرسنجی](assets/screens/broadcast-poll-fa-dark.jpg) |
+| **مدیریت کاربران · Users** | **سازنده نظرسنجی تعاملی · Poll builder** |
+| ![ویرایشگر دکمه‌ها](assets/screens/menu-buttons-fa-dark.jpg) | ![تنظیمات](assets/screens/settings-fa-dark.jpg) |
+| **ویرایشگر دکمه با ردیف/ستون + شبیه‌ساز · Button editor + simulator** | **زبان ربات و تنظیمات · Settings** |
+| ![انگلیسی روشن](assets/screens/dashboard-en-light.jpg) | ![موبایل](assets/screens/users-mobile-fa-dark.jpg) |
+| **حالت روشن + EN · Light + English** | **موبایل بدون زوم · Mobile** |
 
 ---
 
@@ -55,7 +57,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 |---|---|
 | `/start` | پیام خوش‌آمد (با متغیرهای `{name}`، `{username}`، `{id}`) + دکمه‌های شیشه‌ای + فعال‌سازی کیبورد اصلی |
 | `/help` | نمایش متن راهنما (قابل ویرایش از پنل، جدا برای فا/EN) |
-| `/lang` | تغییر زبان کاربر با دکمه شیشه‌ای — زبان هر کاربر جداگانه در KV ذخیره می‌شود |
+| `/lang` | تغییر زبان کاربر با دکمه شیشه‌ای — زبان هر کاربر جداگانه در KV ذخیره می‌شود *(فقط حالت دوزبانه)* |
 | `/id` | نمایش آیدی عددی کاربر (برای ارسال پیام به «کاربران خاص» از پنل) |
 | `/ping` | بررسی فعال بودن ربات |
 | `/support` | شروع گفتگو با پشتیبانی — پیام‌های بعدی به صندوق پنل می‌رسد |
@@ -64,7 +66,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 ### جریان کار ربات
 
 1. **ثبت خودکار کاربران:** اولین پیام هر کاربر → ذخیره نام، یوزرنیم، زمان عضویت، زبان و آخرین فعالیت در KV → نمایش فوری در پنل.
-2. **دو زبانه واقعی:** هر کاربر با `/lang` زبان خود را انتخاب می‌کند و از آن به بعد پیام‌ها به همان زبان ارسال می‌شود؛ زبان پیش‌فرض از پنل قابل تغییر است.
+2. **دو زبانه یا تک‌زبانه:** در حالت دوزبانه هر کاربر با `/lang` زبانش را انتخاب می‌کند؛ در حالت تک‌زبانه (فقط فا یا فقط EN) زبان ثابت است و `/lang` غیرفعال می‌شود — از «تنظیمات ← زبان ربات». **دکمه پشتیبانی هم خودکار به همه صفحات منو اضافه می‌شود** (متن سفارشی فا/EN).
 3. **منوی کامل قابل ویرایش:** متن خوش‌آمد/راهنما و دکمه‌های شیشه‌ای (لینک، کال‌بک، زیرمنو، پاپ‌آپ) همگی از پنل ویرایش می‌شوند و **بدون دیپلوی مجدد** اعمال می‌شوند؛ جای هر دکمه با انتخاب **ردیف و ستون** مشخص و با فلش‌ها جابه‌جا می‌شود.
 4. **مسدودسازی:** کاربر مسدودشده به‌صورت کاملاً بی‌صدا نادیده گرفته می‌شود (نه جواب می‌گیرد و نه در ارسال همگانی حساب می‌شود) و دلیل مسدودی ثبت می‌شود.
 5. **ارسال همگانی هوشمند:** با رعایت محدودیت نرخ تلگرام (~۲۵ پیام/ثانیه قابل تنظیم)، به‌صورت دسته‌ای ارسال می‌شود؛ پیشرفت زنده در پنل، امکان توقف/ادامه، و تشخیص خودکار افرادی که ربات را بلاک کرده‌اند (خطای 403 → علامت‌گذاری و حذف از ارسال‌های بعدی).
@@ -104,10 +106,12 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 | 📊 نظرسنجی تعاملی | سؤال + ۲ تا ۱۰ گزینه با دکمه شیشه‌ای — با هر کلیک **اعداد و نمودار میله‌ای زنده بروزرسانی می‌شوند**؛ امکان تغییر رأی، دکمه بروزرسانی نتایج و مشاهده نتایج در پنل |
 | 🖼 عکس/فایل با واکنش | ارسال عکس (لینک مستقیم) با کپشن + دکمه‌های **👍 لایک / 👎 دیسلایک** با شمارش زنده و امکان برداشتن رأی |
 | ⌨️ سازنده منوی چندلایه | ویرایش پیام‌ها (فا/EN)؛ دکمه‌های شیشه‌ای ۴ نوع: **لینک، کال‌بک، زیرمنو، پاپ‌آپ متن** + **زیرمنوهای تودرتو چندلایه** با **ویرایشگر اختصاصی دکمه‌ها برای هر زیرمنو** + تعیین **ردیف و ستون** هر دکمه و جابه‌جایی با فلش + **شبیه‌ساز زنده قابل کلیک** و ارسال پیش‌نمایش واقعی |
+| 🛡 دکمه پشتیبانی همیشگی | با یک کلید، دکمه پشتیبانی **به‌صورت خودکار به همه صفحات منو** (اصلی + همه زیرمنوها) اضافه می‌شود — متن دکمه فا/EN قابل تنظیم است؛ در هر جای دلخواه هم می‌توان دستی اضافه کرد (کال‌بک `support:open`) |
+| 🌍 حالت زبان ربات | **دوزبانه (پیش‌فرض) یا تک‌زبانه** (فقط فارسی / فقط English) — در حالت تک‌زبانه `/lang` و دکمه تغییر زبان غیرفعال می‌شوند و ربات همیشه به زبان انتخابی پاسخ می‌دهد |
 | 🛡 صندوق پشتیبانی دوطرفه | کاربر با `/support` پیام می‌دهد → در پنل می‌رسد (badge خوانده‌نشده) → پاسخ ادمین در تلگرامش تحویل می‌شود؛ بستن تیکت |
 | 🔒 قفل کانال (عضویت اجباری) | تا کاربر عضو نشود ربات فعال نمی‌شود؛ تشخیص با `getChatMember` (کش ۱۵ دقیقه)، دکمه «عضو شدم»، معافیت ادمین‌ها |
 | ⚙️ تنظیمات | توکن ربات (ماسک‌شده)، زبان پیش‌فرض، **قفل کانال**، تنظیم/حذف وب‌هوک با یک کلیک، تیونینگ ارسال |
-| 🌍 دو زبانه | سوئیچ کامل فا/EN با RTL/LTR، حالت تاریک/روشن، طراحی اول موبایل |
+| 🌍 پنل دو زبانه | سوئیچ کامل فا/EN با RTL/LTR، حالت تاریک/روشن، موبایل‌فرست با **صفحه ثابت بدون زوم** |
 
 ## 🏗️ معماری
 
@@ -245,7 +249,7 @@ This project ships a **working Telegram bot + full admin panel** running togethe
 |---|---|
 | `/start` | Welcome message (supports `{name}`, `{username}`, `{id}` variables) + inline buttons + main keyboard |
 | `/help` | Help text (editable from the panel, separate FA/EN versions) |
-| `/lang` | Per-user language switch — each user's language is stored individually in KV |
+| `/lang` | Per-user language switch — each user's language is stored individually in KV *(bilingual mode only)* |
 | `/id` | Shows the user's numeric ID (for “specific users” targeting in the panel) |
 | `/ping` | Liveness check |
 | `/support` | Start chatting with support — subsequent messages land in the panel inbox |
@@ -254,7 +258,7 @@ This project ships a **working Telegram bot + full admin panel** running togethe
 ### How the bot works
 
 1. **Automatic user tracking:** a user's first message stores their name, username, join date, language and last activity in KV — they instantly appear in the panel.
-2. **Truly bilingual:** each user picks their language via `/lang`; every message afterwards respects it. Default language is configurable from the panel.
+2. **Bilingual or single-language:** in bilingual mode each user picks their language via `/lang`; in single-language mode (FA-only or EN-only) the language is fixed and `/lang` is disabled — configurable from “Settings ← Bot language”. The **support button is auto-added to every menu page** (toggleable, custom FA/EN labels).
 3. **Fully editable menu:** welcome/help texts and inline buttons (URL, callback, submenu, popup) are edited from the panel and go live **without redeploying**; each button’s place is set by its **row and column** and moved with arrows.
 4. **Banning:** banned users are silently ignored (no replies, excluded from broadcasts) with the ban reason recorded.
 5. **Smart broadcasts:** rate-limited (~25 msg/s, tunable) batch sending with live progress, pause/resume, and automatic detection of users who blocked the bot (403 → flagged and skipped afterwards).
@@ -288,10 +292,12 @@ Webhook accepted only with the secret `X-Telegram-Bot-Api-Secret-Token` header �
 | 📊 Interactive polls | Question + 2–10 options with inline buttons — **counts and text bars update live** on every vote, vote changing, refresh button, results in the panel |
 | 🖼 Photo with reactions | Photo (direct URL) with caption + **👍 like / 👎 dislike** buttons, live counters, toggleable votes |
 | ⌨️ Multi-level menu builder | Texts (FA/EN); inline buttons of 4 types (**URL, callback, submenu, text popup**) + **nested multi-level submenus** with a **dedicated button editor per submenu** + exact **row & column placement** with arrow controls + **clickable live simulator** and real preview |
+| 🛡 Always-on support button | One toggle auto-adds the support button to **every menu page** (root + all submenus) with custom FA/EN labels; it can also be placed manually anywhere (callback `support:open`) |
+| 🌍 Bot language mode | **Bilingual (default) or single-language** (Persian-only / English-only) — in single-language mode `/lang` and the language button are disabled and the bot always replies in the chosen language |
 | 🛡 Two-way support inbox | Users message via `/support` → lands in the panel (unread badge) → admin’s reply is delivered in their Telegram; ticket closing |
 | 🔒 Channel lock (force-subscribe) | The bot stays locked until the user joins your channel; detection via `getChatMember` (15-min cache), “I joined” button, admins exempt |
 | ⚙️ Settings | Bot token (masked), default language, **channel lock**, one-click webhook management |
-| 🌍 Bilingual | Full FA/EN with RTL/LTR, dark/light, mobile-first |
+| 🌍 Bilingual panel | Full FA/EN with RTL/LTR, dark/light, mobile-first with a **fixed, no-zoom viewport** |
 
 ## 🚀 Setup — two methods
 

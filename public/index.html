@@ -161,7 +161,10 @@
       // settings
       botSettings: 'تنظیمات ربات', botToken: 'توکن ربات', tokenStored: 'توکن ذخیره‌شده:',
       tokenHint: 'از @BotFather دریافت می‌شود. خالی بگذارید تا تغییر نکند.', tokenMissingWarn: 'هنوز توکنی تنظیم نشده است',
-      defaultBotLang: 'زبان پیش‌فرض ربات', broadcastTuning: 'تیونینگ ارسال همگانی',
+      defaultBotLang: 'زبان پیش‌فرض (کاربران جدید)', broadcastTuning: 'تیونینگ ارسال همگانی',
+      botLang: 'زبان ربات', langBoth: 'دوزبانه (فارسی + English)', langFaOnly: 'تک‌زبانه — فقط فارسی',
+      langEnOnly: 'تک‌زبانه — فقط English', defLangHint: 'زبان اولیه کاربران جدید — فقط در حالت دوزبانه کاربرد دارد',
+      supportAlways: 'نمایش خودکار دکمه پشتیبانی در همه صفحات منو', sbFaPh: 'متن دکمه (فارسی)', sbEnPh: 'متن دکمه (English)',
       batchSize: 'حجم هر دسته (۱ تا ۵۰)', delayMs: 'فاصله بین پیام‌ها (میلی‌ثانیه)',
       webhookMgmt: 'مدیریت وب‌هوک', setWebhook: 'تنظیم وب‌هوک', delWebhook: 'حذف وب‌هوک',
       confirmDelWh: 'وب‌هوک حذف شود؟ ربات پیام‌ها را دریافت نخواهد کرد.',
@@ -243,7 +246,10 @@
       confirmReset: 'Reset menu to defaults?', botReplies: 'Bot', you: 'You',
       botSettings: 'Bot settings', botToken: 'Bot token', tokenStored: 'Stored token:',
       tokenHint: 'Get it from @BotFather. Leave empty to keep unchanged.', tokenMissingWarn: 'No token configured yet',
-      defaultBotLang: 'Default bot language', broadcastTuning: 'Broadcast tuning',
+      defaultBotLang: 'Default language (new users)', broadcastTuning: 'Broadcast tuning',
+      botLang: 'Bot language', langBoth: 'Bilingual (Persian + English)', langFaOnly: 'Single — Persian only',
+      langEnOnly: 'Single — English only', defLangHint: 'Initial language for new users — applies in bilingual mode only',
+      supportAlways: 'Auto-show the support button on all menu pages', sbFaPh: 'Button text (Persian)', sbEnPh: 'Button text (English)',
       batchSize: 'Batch size (1–50)', delayMs: 'Delay between messages (ms)',
       webhookMgmt: 'Webhook management', setWebhook: 'Set webhook', delWebhook: 'Delete webhook',
       confirmDelWh: 'Delete the webhook? The bot will stop receiving updates.',
@@ -1294,12 +1300,26 @@
 
   async function loadMenu() {
     try {
-      const d = await api('/menu');
+      const [d, s] = await Promise.all([api('/menu'), api('/settings').catch(() => null)]);
       MU.menu = d.menu;
       MU.defaults = d.defaults;
+      MU.settings = s ? s.settings : null;
       renderMenuEditor();
       renderSim();
     } catch (e) { toast(e.message, 'error'); }
+  }
+
+  // دکمه پشتیبانی خودکار در شبیه‌ساز (مطابق ربات واقعی)
+  function simWithSupport(rows) {
+    const sb = MU.settings && MU.settings.supportButton;
+    if (!sb || sb.enabled === false) return rows || [];
+    const has = (rows || []).some((r) => (r || []).some((b) => b && b.type === 'callback' && b.value === 'support:open'));
+    if (has) return rows || [];
+    const text = (S.lang === 'en' ? sb.en : sb.fa) || '🛡 پشتیبانی';
+    return [...(rows || []), [{ text, type: 'callback', value: 'support:open' }]];
+  }
+  function simSingleLang() {
+    return !!(MU.settings && MU.settings.botLangMode && MU.settings.botLangMode !== 'both');
   }
 
   // ورودی مقدار دکمه بر اساس نوع (در ویرایشگر؛ برای submenu یک select از زیرمنوها)
@@ -1530,11 +1550,11 @@
     const m = MU.menu;
     if (pageId === 'root') {
       const l = S.lang === 'fa' ? 'fa' : 'en';
-      simBot(esc(m.welcome[l] || m.welcome.fa).replace(/\{name\}/g, 'Admin') + simPills(m.inlineButtons));
+      simBot(esc(m.welcome[l] || m.welcome.fa).replace(/\{name\}/g, 'Admin') + simPills(simWithSupport(m.inlineButtons)));
     } else {
       const sm = (m.submenus || {})[pageId];
       if (!sm) return;
-      simBot('📂 <b>' + esc(sm.title) + '</b>\n' + esc(sm.text) + simPills(sm.buttons || []) +
+      simBot('📂 <b>' + esc(sm.title) + '</b>\n' + esc(sm.text) + simPills(simWithSupport(sm.buttons || [])) +
         '<div class="flex gap-1.5 justify-center flex-wrap mt-2"><button data-act="simBtn" data-type="submenu" data-value="root" class="rounded-lg bg-slate-600/60 hover:bg-slate-500 text-white text-[11px] px-3 py-1.5 transition">⬅️ ' + (S.lang === 'fa' ? 'بازگشت' : 'Back') + '</button></div>');
     }
   }
@@ -1557,7 +1577,8 @@
     } else if (cmd === '/help') {
       simBot(esc(m.help[lang] || m.help.fa));
     } else if (cmd === '/lang') {
-      simBot(st.chooseLang + simPills([[{ text: 'فارسی 🇮🇷', type: 'text', value: 'فارسی انتخاب شد' }, { text: 'English 🇬🇧', type: 'text', value: 'English selected' }]]));
+      if (simSingleLang()) simBot('🌍 ' + (S.lang === 'fa' ? 'این ربات فقط به یک زبان پاسخ می‌دهد.' : 'This bot responds in one language only.'));
+      else simBot(st.chooseLang + simPills([[{ text: 'فارسی 🇮🇷', type: 'text', value: 'فارسی انتخاب شد' }, { text: 'English 🇬🇧', type: 'text', value: 'English selected' }]]));
     } else if (cmd === '/id') {
       simBot(st.yourId);
     } else if (cmd === '/ping') {
@@ -1578,8 +1599,19 @@
       '<p id="st-token-cur" class="text-xs mb-2"></p>' +
       '<input id="st-token-in" dir="ltr" type="password" autocomplete="off" placeholder="123456:ABC-DEF…" class="' + CLS.input + '">' +
       '<p class="text-[11px] text-slate-400 mt-1.5">' + t('tokenHint') + '</p></div>' +
-'<div class="mb-5"><label class="' + CLS.label + '">' + t('defaultBotLang') + '</label>' +
-      '<select id="st-lang" class="' + CLS.input + '"><option value="fa">فارسی</option><option value="en">English</option></select></div>' +
+'<div class="mb-4"><label class="' + CLS.label + '">' + t('botLang') + '</label>' +
+      '<select id="st-langmode" data-act-change="langMode" class="' + CLS.input + '">' +
+      '<option value="both">' + t('langBoth') + '</option>' +
+      '<option value="fa">' + t('langFaOnly') + '</option>' +
+      '<option value="en">' + t('langEnOnly') + '</option></select></div>' +
+      '<div class="mb-4" id="deflang-wrap"><label class="' + CLS.label + '">' + t('defaultBotLang') + '</label>' +
+      '<select id="st-lang" class="' + CLS.input + '"><option value="fa">فارسی</option><option value="en">English</option></select>' +
+      '<p class="text-[11px] text-slate-400 mt-1.5">' + t('defLangHint') + '</p></div>' +
+      '<div class="mb-5"><label class="flex items-center gap-2.5 cursor-pointer text-sm">' +
+      '<input id="st-sb-on" type="checkbox" class="w-4 h-4 accent-brand-500">' + t('supportAlways') + '</label>' +
+      '<div class="grid sm:grid-cols-2 gap-3 mt-3">' +
+      '<input id="st-sb-fa" maxlength="64" placeholder="' + t('sbFaPh') + '" class="' + CLS.input + '">' +
+      '<input id="st-sb-en" dir="ltr" maxlength="64" placeholder="' + t('sbEnPh') + '" class="' + CLS.input + '"></div></div>' +
       '<button data-act="saveGeneral" class="' + CLS.btnP + '"><i data-lucide="save" class="w-4 h-4"></i>' + t('save') + '</button></div>' +
 
       '<div class="space-y-4">' +
@@ -1649,7 +1681,14 @@
       $('st-token-cur').innerHTML = st.hasToken
         ? '<span class="text-emerald-500 font-semibold">✓ ' + t('tokenStored') + '</span> <span class="font-mono text-slate-400" dir="ltr">' + esc(st.tokenMasked) + '</span>'
         : '<span class="text-amber-500 font-semibold">⚠ ' + t('tokenMissingWarn') + '</span>';
+      $('st-langmode').value = st.botLangMode || 'both';
       $('st-lang').value = st.defaultLang || 'fa';
+      const dw = $('deflang-wrap');
+      if (dw) dw.classList.toggle('hidden', (st.botLangMode || 'both') !== 'both');
+      const sb = st.supportButton || {};
+      $('st-sb-on').checked = sb.enabled !== false;
+      $('st-sb-fa').value = sb.fa || '';
+      $('st-sb-en').value = sb.en || '';
       $('st-batch').value = (st.broadcast && st.broadcast.batchSize) || 25;
       $('st-delay').value = (st.broadcast && st.broadcast.delayMs) || 40;
       const rc = st.requiredChannel || {};
@@ -1857,7 +1896,11 @@
 
     // تنظیمات
     saveGeneral: async () => {
-      const body = { defaultLang: $('st-lang').value };
+      const body = {
+        defaultLang: $('st-lang').value,
+        botLangMode: $('st-langmode').value,
+        supportButton: { enabled: $('st-sb-on').checked, fa: $('st-sb-fa').value.trim(), en: $('st-sb-en').value.trim() },
+      };
       const tk = $('st-token-in').value.trim();
       if (tk) body.botToken = tk;
       try {
@@ -1984,6 +2027,12 @@
       const u = $('tg-users'), c = $('tg-chat');
       if (u) u.classList.toggle('hidden', BC.target !== 'users');
       if (c) c.classList.toggle('hidden', BC.target !== 'chat');
+    }
+    // حالت زبان: زبان پیش‌فرض فقط در حالت دوزبانه معنا دارد
+    if (x.id === 'st-langmode') {
+      const dw = $('deflang-wrap');
+      if (dw) dw.classList.toggle('hidden', x.value !== 'both');
+      return;
     }
     // تغییر نوع در مودال «افزودن دکمه» → فیلد مقدار متناسب بازسازی می‌شود
     if (x.id === 'bm-type') {

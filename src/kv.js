@@ -82,7 +82,10 @@ export const DEFAULT_MENU = {
 // ── مقادیر پیش‌فرض تنظیمات ─────────────────────────────────────────
 export const DEFAULT_SETTINGS = {
   botToken: '', // اگر خالی باشد از env.BOT_TOKEN استفاده می‌شود
-  defaultLang: 'fa',
+  botLangMode: 'both', // 'fa' | 'en' | 'both' — دوزبانه یا تک‌زبانه
+  defaultLang: 'fa', // زبان اولیه کاربران جدید (فقط در حالت دوزبانه)
+  supportButton: { enabled: true, fa: '🛡 پشتیبانی', en: '🛡 Support' }, // دکمه پشتیبانی همیشگی در همه صفحات منو
+
   broadcast: { batchSize: 25, delayMs: 40 }, // تنظیمات Rate-Limit ارسال همگانی
   // قفل کانال: کاربر تا عضو کانال نشود ربات برایش فعال نمی‌شود
   requiredChannel: { enabled: false, chatId: '', url: '' },
@@ -119,6 +122,7 @@ export async function getSettings(env) {
     ...s,
     broadcast: { ...DEFAULT_SETTINGS.broadcast, ...(s.broadcast || {}) },
     requiredChannel: { ...DEFAULT_SETTINGS.requiredChannel, ...(s.requiredChannel || {}) },
+    supportButton: { ...DEFAULT_SETTINGS.supportButton, ...(s.supportButton || {}) },
   };
 }
 

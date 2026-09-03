@@ -372,7 +372,27 @@ console.log('\n── 12) قفل کانال ──');
   await call('PUT', '/api/settings', { token: TOKEN, body: { requiredChannel: { enabled: false, chatId: '', url: '' } } });
 }
 
-console.log('\n── 13) تغییر رمز عبور از پنل ──');
+console.log('\n── 13) زبان ربات و دکمه پشتیبانی همیشگی ──');
+{
+  let r = await json(await call('PUT', '/api/settings', { token: TOKEN, body: {
+    botLangMode: 'fa',
+    supportButton: { enabled: true, fa: '🛡 کمک می‌خواهم', en: '🛡 Help' },
+  } }));
+  ok('تنظیم حالت تک‌زبانه فارسی', r.body.data.settings.botLangMode === 'fa');
+  ok('متن سفارشی دکمه پشتیبانی ذخیره شد', r.body.data.settings.supportButton.fa === '🛡 کمک می‌خواهم');
+
+  r = await json(await call('GET', '/api/settings', { token: TOKEN }));
+  ok('خواندن تنظیمات جدید', r.body.data.settings.botLangMode === 'fa' && r.body.data.settings.supportButton.enabled === true);
+
+  // مقدار نامعتبر رد می‌شود
+  r = await json(await call('PUT', '/api/settings', { token: TOKEN, body: { botLangMode: 'klingon' } }));
+  ok('حالت زبان نامعتبر نادیده گرفته شد', r.body.data.settings.botLangMode === 'fa');
+
+  // بازگشت به دوزبانه
+  await call('PUT', '/api/settings', { token: TOKEN, body: { botLangMode: 'both' } });
+}
+
+console.log('\n── 14) تغییر رمز عبور از پنل ──');
 {
   // رمز فعلی غلط → رد
   let r = await json(await call('POST', '/api/auth/change-password', { token: TOKEN, body: { currentPassword: 'wrong', newPassword: 'test-new-pass-456' } }));

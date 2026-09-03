@@ -23,6 +23,8 @@ function publicView(settings, envToken) {
     tokenMasked: token ? `${'•'.repeat(8)}${token.slice(-4)}` : '',
     source: settings.botToken ? 'kv' : envToken ? 'env' : 'none',
     defaultLang: settings.defaultLang,
+    botLangMode: settings.botLangMode || 'both',
+    supportButton: settings.supportButton,
     broadcast: settings.broadcast,
     requiredChannel: settings.requiredChannel,
   };
@@ -46,6 +48,19 @@ r.put('/', async (c) => {
   }
 
   if (['fa', 'en'].includes(body.defaultLang)) settings.defaultLang = body.defaultLang;
+
+  // ── حالت زبان ربات: دوزبانه یا تک‌زبانه ──────────────────
+  if (['fa', 'en', 'both'].includes(body.botLangMode)) settings.botLangMode = body.botLangMode;
+
+  // ── دکمه پشتیبانی همیشگی (افزودن خودکار به همه صفحات منو) ──
+  if (body.supportButton && typeof body.supportButton === 'object') {
+    const sb = body.supportButton;
+    settings.supportButton = {
+      enabled: !!sb.enabled,
+      fa: String(sb.fa || '').trim().slice(0, 64) || '🛡 پشتیبانی',
+      en: String(sb.en || '').trim().slice(0, 64) || '🛡 Support',
+    };
+  }
 
   // ── قفل کانال (عضویت اجباری) ─────────────────────────────
   if (body.requiredChannel && typeof body.requiredChannel === 'object') {

@@ -24,6 +24,7 @@ const BOT_T = {
     langSet: '✅ زبان به فارسی تغییر کرد.',
     yourId: '🆔 آیدی عددی شما:',
     pong: '🏓 پونگ! ربات فعال است.',
+    singleLang: '🌍 این ربات فقط به فارسی پاسخ می‌دهد.',
     lock: '🔒 برای استفاده از ربات، ابتدا در کانال ما عضو شوید:',
     lockOk: '✅ عضویت تایید شد! ربات برای شما فعال شد. /start را بزنید.',
     lockNo: '❌ هنوز عضو کانال نشده‌اید. ابتدا عضو شوید و دوباره بزنید.',
@@ -49,6 +50,7 @@ const BOT_T = {
     langSet: '✅ Language changed to English.',
     yourId: '🆔 Your numeric ID:',
     pong: '🏓 Pong! The bot is alive.',
+    singleLang: '🌍 This bot only responds in English.',
     lock: '🔒 To use this bot, please join our channel first:',
     lockOk: '✅ Membership confirmed! The bot is now active for you. Send /start.',
     lockNo: "❌ You haven't joined the channel yet. Join first, then tap again.",
@@ -97,6 +99,25 @@ export function withTimeout(promise, ms, fallback = null) {
   return Promise.race([promise, new Promise((r) => setTimeout(() => r(fallback), ms))]);
 }
 
+// ═══ زبان مؤثر ربات: تک‌زبانه (fa|en) یا دوزبانه (انتخاب کاربر) ═══
+export function effectiveLang(user, settings) {
+  const mode = (settings && settings.botLangMode) || 'both';
+  if (mode === 'fa') return 'fa';
+  if (mode === 'en') return 'en';
+  const l = (user && user.lang) || (settings && settings.defaultLang) || 'fa';
+  return BOT_T[l] ? l : 'fa';
+}
+
+// ردیف دکمه پشتیبانی خودکار — اگر فعال باشد و صفحه از قبل نداشته باشد
+function withSupport(rows, settings, lang) {
+  const sb = settings && settings.supportButton;
+  if (!sb || !sb.enabled) return rows || [];
+  const has = (rows || []).some((r) => (r || []).some((b) => b && b.type === 'callback' && b.value === 'support:open'));
+  if (has) return rows || [];
+  const text = String((lang === 'en' ? sb.en : sb.fa) || sb.fa || '🛡 پشتیبانی').slice(0, 64);
+  return [...(rows || []), [{ text, type: 'callback', value: 'support:open' }]];
+}
+
 // ── ساخت مارک‌آپ‌ها ────────────────────────────────────────────────
 
 export function renderTpl(text = '', user = {}) {
@@ -125,8 +146,9 @@ function tagButtons(rows, src) {
   return rows.map((row, r) => row.map((b, c) => ({ ...b, _src: src, _r: r, _c: c })));
 }
 
-export function inlineMarkup(menu) {
-  return pageMarkup(tagButtons(menu.inlineButtons, 'root'), { withBack: false });
+export function inlineMarkup(menu, settings, lang) {
+  const rows = withSupport(menu.inlineButtons, settings, lang || 'fa');
+  return pageMarkup(tagButtons(rows, 'root'), { withBack: false });
 }
 
 export function sendToUser(token, chatId, text, extra = {}) {
@@ -300,7 +322,7 @@ async function onMessage(env, msg) {
   bumpStats(env, { messages: 1 }); // fire-and-forget
   if (!text) return;
 
-  const lang = BOT_T[user.lang || settings.defaultLang] ? (user.lang || settings.defaultLang) : 'fa';
+  const lang = effectiveLang(user, settings);
   const T = BOT_T[lang];
   const menu = await getMenu(env);
 
@@ -317,13 +339,15 @@ async function onMessage(env, msg) {
       case '/start': {
         user.supportOpen = false; // شروع تازه = خروج از حالت پشتیبانی
         await putUser(env, user);
-        return await sendStart(token, chatId, user, menu, lang);
+        return await sendStart(token, chatId, user, menu, lang, settings);
       }
       case '/help':
         return await sendToUser(token, chatId, renderTpl(menu.help[lang] || menu.help.fa, user), {
           disable_web_page_preview: true,
         });
       case '/lang':
+        // فقط در حالت دوزبانه؛ در حالت تک‌زبانه اطلاع‌رسانی می‌شود
+        if ((settings.botLangMode || 'both') !== 'both') return sendToUser(token, chatId, T.singleLang);
         return await sendToUser(token, chatId, T.chooseLang, { reply_markup: langKeyboard() });
       case '/id':
         return await sendToUser(token, chatId, `${T.yourId} <code>${user.id}</code>`, {
@@ -352,10 +376,10 @@ async function onMessage(env, msg) {
   return await sendToUser(token, chatId, T.unknown);
 }
 
-export async function sendStart(token, chatId, user, menu, lang) {
-  const welcome = renderTpl(menu.welcome[lang] || menu.welcome.fa, user);
+export async function sendStart(token, chatId, user, menu, lang, settings) {
+  const welcome = renderTpl(menu.welcome[lang] || menu.welcome.en || menu.welcome.fa, user);
   await sendToUser(token, chatId, welcome, {
-    reply_markup: inlineMarkup(menu),
+    reply_markup: inlineMarkup(menu, settings, lang),
     disable_web_page_preview: true,
   });
 }
@@ -370,16 +394,16 @@ function langKeyboard() {
 }
 
 // نمایش یک صفحه منو (روت یا زیرمنو) — با editMessageText
-async function showPage(token, chatId, messageId, menu, pageId, lang) {
+async function showPage(token, chatId, messageId, menu, pageId, lang, settings) {
   const T = BOT_T[lang] || BOT_T.fa;
   let text, rows, src, withBack = false;
   if (pageId === 'root') {
     text = renderTpl(menu.welcome[lang] || menu.welcome.fa, {});
-    rows = menu.inlineButtons; src = 'root';
+    rows = withSupport(menu.inlineButtons, settings, lang); src = 'root';
   } else {
     const sm = (menu.submenus || {})[pageId];
-    if (!sm) { pageId = 'root'; text = renderTpl(menu.welcome[lang] || menu.welcome.fa, {}); rows = menu.inlineButtons; src = 'root'; }
-    else { text = `${sm.title ? sm.title + '\n\n' : ''}${sm.text}`; rows = sm.buttons; src = pageId; withBack = true; }
+    if (!sm) { pageId = 'root'; text = renderTpl(menu.welcome[lang] || menu.welcome.fa, {}); rows = withSupport(menu.inlineButtons, settings, lang); src = 'root'; }
+    else { text = `${sm.title ? sm.title + '\n\n' : ''}${sm.text}`; rows = withSupport(sm.buttons, settings, lang); src = pageId; withBack = true; }
   }
   return tgApi(token, 'editMessageText', {
     chat_id: chatId,
@@ -437,7 +461,10 @@ async function onCallback(env, cb) {
   const T = BOT_T[lang];
   const menu = await getMenu(env);
 
-  // ── تغییر زبان ───────────────────────────────────────────
+  // ── تغییر زبان (فقط حالت دوزبانه) ────────────────────────
+  if (data.startsWith('setlang:') && (settings.botLangMode || 'both') !== 'both') {
+    return answer(BOT_T[effectiveLang(user, settings)].singleLang, true);
+  }
   if (data === 'setlang:menu') {
     await sendToUser(token, chatId, T.chooseLang, { reply_markup: langKeyboard() });
     return answer();
@@ -450,7 +477,7 @@ async function onCallback(env, cb) {
     await tgApi(token, 'editMessageText', {
       chat_id: chatId, message_id: messageId,
       text: `${TT.langSet}\n\n${renderTpl(menu.welcome[l], user)}`,
-      reply_markup: inlineMarkup(menu),
+      reply_markup: inlineMarkup(menu, settings, l),
       disable_web_page_preview: true,
     });
     return answer(TT.langSet);
@@ -459,7 +486,7 @@ async function onCallback(env, cb) {
   // ── گشتن در منوهای چندلایه: sub:{id} ─────────────────────
   if (data.startsWith('sub:')) {
     const pageId = data.slice(4);
-    await showPage(token, chatId, messageId, menu, pageId === 'root' ? 'root' : pageId, lang);
+    await showPage(token, chatId, messageId, menu, pageId === 'root' ? 'root' : pageId, lang, settings);
     return answer();
   }
 

@@ -14,7 +14,7 @@
 
 import { Hono } from 'hono';
 import { requireAuth } from '../auth.js';
-import { DEFAULT_MENU, getMenu, saveMenu } from '../kv.js';
+import { DEFAULT_MENU, getMenu, saveMenu, getSettings } from '../kv.js';
 import { resolveToken, sendStart } from '../telegram.js';
 
 const r = new Hono();
@@ -113,9 +113,9 @@ r.post('/preview', async (c) => {
   const token = await resolveToken(c.env);
   if (!token) return fail(c, 'token_missing');
 
-  const menu = await getMenu(c.env);
+  const [menu, settings] = await Promise.all([getMenu(c.env), getSettings(c.env)]);
   try {
-    await sendStart(token, chatId, { id: chatId, firstName: 'Admin' }, menu, 'fa');
+    await sendStart(token, chatId, { id: chatId, firstName: 'Admin' }, menu, 'fa', settings);
     return c.json({ ok: true, data: { sent: true } });
   } catch (e) {
     return fail(c, 'telegram_error');
