@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl" class="dark">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>BotPanel — پنل مدیریت ربات</title>
   <meta name="robots" content="noindex">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232aabee'%3E%3Cpath d='M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z'/%3E%3C/svg%3E">
@@ -38,6 +38,12 @@
     };
   </script>
   <style>
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body { touch-action: manipulation; overscroll-behavior-y: contain; }
+    /* جلوگیری از زوم خودکار iOS هنگام فوکوس (فونت اینپوت‌ها در موبایل = ۱۶px) */
+    @media (max-width: 767px) {
+      input, select, textarea { font-size: 16px !important; }
+    }
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-thumb { background: rgba(100,116,139,.4); border-radius: 8px; }
     .tabular { font-variant-numeric: tabular-nums; }
@@ -99,7 +105,7 @@
       moveL: 'یک جای به عقب', moveR: 'یک جای به جلو', moveU: 'انتقال به ردیف بالاتر', moveD: 'انتقال به ردیف پایین‌تر',
       simAlert: 'پاپ‌آپ', channelLock: 'قفل کانال (عضویت اجباری)', chEnable: 'فعال‌سازی — کاربر تا عضو کانال نشود ربات فعال نمی‌شود',
       chId: 'آیدی کانال — مثلاً @mychannel یا -1001234567890', chUrl: 'لینک دعوت سفارشی (اختیاری)',
-      chHint: '⚠️ ربات باید ادمین کانال باشد تا عضویت را تشخیص دهد. ادمین‌های ربات از قفل معاف‌اند.',
+      chHint: '⚠️ ربات باید ادمین کانال باشد تا عضویت را تشخیص دهد.',
       signIn: 'ورود', signingIn: 'در حال ورود…', loginErr: 'رمز عبور نادرست است',
       rateLimited: 'تلاش‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید', fillPassword: 'رمز عبور را وارد کنید',
       defPwHint: 'رمز پیش‌فرض اولیه: <b>botpanel123</b> — بعد از ورود از «تنظیمات ← امنیت و رمز عبور» تغییرش دهید',
@@ -155,7 +161,6 @@
       // settings
       botSettings: 'تنظیمات ربات', botToken: 'توکن ربات', tokenStored: 'توکن ذخیره‌شده:',
       tokenHint: 'از @BotFather دریافت می‌شود. خالی بگذارید تا تغییر نکند.', tokenMissingWarn: 'هنوز توکنی تنظیم نشده است',
-      adminIds: 'آیدی ادمین‌های ربات', adminIdsHint: 'اعداد را با کاما جدا کنید. آیدی خود را با دستور /id در ربات بگیرید.',
       defaultBotLang: 'زبان پیش‌فرض ربات', broadcastTuning: 'تیونینگ ارسال همگانی',
       batchSize: 'حجم هر دسته (۱ تا ۵۰)', delayMs: 'فاصله بین پیام‌ها (میلی‌ثانیه)',
       webhookMgmt: 'مدیریت وب‌هوک', setWebhook: 'تنظیم وب‌هوک', delWebhook: 'حذف وب‌هوک',
@@ -190,7 +195,7 @@
       moveL: 'Move back one slot', moveR: 'Move forward one slot', moveU: 'Move to the row above', moveD: 'Move to the row below',
       simAlert: 'Popup', channelLock: 'Channel lock (force-subscribe)', chEnable: 'Enable — the bot stays locked until the user joins',
       chId: 'Channel ID — e.g. @mychannel or -1001234567890', chUrl: 'Custom invite link (optional)',
-      chHint: '⚠️ The bot must be an admin of the channel to detect membership. Bot admins are exempt.',
+      chHint: '⚠️ The bot must be an admin of the channel to detect membership.',
       signIn: 'Sign in', signingIn: 'Signing in…', loginErr: 'Incorrect password',
       rateLimited: 'Too many attempts; try again in a few minutes', fillPassword: 'Please enter the password',
       defPwHint: 'Initial default password: <b>botpanel123</b> — change it after login from “Settings ← Security & password”',
@@ -238,7 +243,6 @@
       confirmReset: 'Reset menu to defaults?', botReplies: 'Bot', you: 'You',
       botSettings: 'Bot settings', botToken: 'Bot token', tokenStored: 'Stored token:',
       tokenHint: 'Get it from @BotFather. Leave empty to keep unchanged.', tokenMissingWarn: 'No token configured yet',
-      adminIds: 'Bot admin IDs', adminIdsHint: 'Comma-separated numbers. Get your ID via /id in the bot.',
       defaultBotLang: 'Default bot language', broadcastTuning: 'Broadcast tuning',
       batchSize: 'Batch size (1–50)', delayMs: 'Delay between messages (ms)',
       webhookMgmt: 'Webhook management', setWebhook: 'Set webhook', delWebhook: 'Delete webhook',
@@ -301,12 +305,18 @@
   var _0xC = Object.freeze(JSON.parse(
     new TextDecoder().decode(Uint8Array.from(_0x7a3d, function (b) { return b ^ 0xA7; }))
   ));
-  function _crLink(txt, icon, url) {
+  // لوگوی کوچک تلگرام (هواپیمای کاغذی رسمی) — SVG داخلی
+  var _TG_SVG = '<svg viewBox="0 0 24 24" fill="none" class="w-[18px] h-[18px]"><circle cx="12" cy="12" r="12" fill="url(#_tgcr)"/><defs><linearGradient id="_tgcr" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2AABEE"/><stop offset="1" stop-color="#229ED9"/></linearGradient></defs><path fill="#fff" transform="translate(5.2,5.2) scale(0.58)" d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>';
+  // لوگوی کوچک اینستاگرام — SVG داخلی
+  var _IG_SVG = '<svg viewBox="0 0 24 24" fill="none" class="w-[18px] h-[18px]"><circle cx="12" cy="12" r="12" fill="url(#_igcr)"/><defs><linearGradient id="_igcr" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#F58529"/><stop offset="0.5" stop-color="#DD2A7B"/><stop offset="1" stop-color="#8134AF"/></linearGradient></defs><g transform="translate(6,6)" stroke="#fff" stroke-width="1.6" stroke-linecap="round" fill="none"><rect x="0" y="0" width="12" height="12" rx="3.6"/><circle cx="6" cy="6" r="2.7"/><circle cx="10" r="0.9" cy="2" fill="#fff" stroke="none"/></g></svg>';
+  function _crLink(svg, handle, url, label) {
     var a = document.createElement('a');
     a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-    a.className = 'inline-flex items-center gap-1.5 hover:text-brand-500 dark:hover:text-brand-400 transition font-semibold';
+    a.title = label + ' @' + handle;       // راهنمای ابزار
+    a.setAttribute('aria-label', label + ' @' + handle);
     a.setAttribute('data-cr', '1');
-    a.innerHTML = '<i data-lucide="' + icon + '" class="w-3.5 h-3.5"></i><span dir="ltr">' + txt + '</span>';
+    a.className = 'w-9 h-9 rounded-full flex items-center justify-center bg-slate-200/70 dark:bg-slate-800 hover:scale-110 active:scale-95 transition-transform shadow-sm';
+    a.innerHTML = svg;
     return a;
   }
   function _crR(host) {
@@ -315,14 +325,10 @@
     var old = document.querySelector('.bp-credit');
     if (old) old.remove();
     var w = document.createElement('div');
-    w.className = 'bp-credit mt-8 pb-24 md:pb-8 px-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-slate-400 dark:text-slate-500 select-none';
-    var lbl = document.createElement('span');
-    lbl.textContent = (S.lang === 'fa' ? _0xC.fa : _0xC.en) + ' ';
-    w.appendChild(lbl);
-    w.appendChild(_crLink('@' + _0xC.tg, 'send', _0xC.tgu));
-    w.appendChild(_crLink('@' + _0xC.ig, 'instagram', _0xC.igu));
+    w.className = 'bp-credit mt-8 pb-24 md:pb-8 px-4 flex items-center justify-center gap-3 select-none';
+    w.appendChild(_crLink(_TG_SVG, _0xC.tg, _0xC.tgu, 'Telegram'));
+    w.appendChild(_crLink(_IG_SVG, _0xC.ig, _0xC.igu, 'Instagram'));
     host.appendChild(w);
-    refreshIcons();
   }
   // نگهبان: اگر فوتر از DOM حذف شود، به‌صورت خودکار بازنویسی می‌شود
   setInterval(function () { if (!document.querySelector('.bp-credit')) _crR(); }, 5000);
@@ -1572,10 +1578,7 @@
       '<p id="st-token-cur" class="text-xs mb-2"></p>' +
       '<input id="st-token-in" dir="ltr" type="password" autocomplete="off" placeholder="123456:ABC-DEF…" class="' + CLS.input + '">' +
       '<p class="text-[11px] text-slate-400 mt-1.5">' + t('tokenHint') + '</p></div>' +
-      '<div class="mb-4"><label class="' + CLS.label + '">' + t('adminIds') + '</label>' +
-      '<input id="st-admins" dir="ltr" inputmode="numeric" placeholder="111111111, 222222222" class="' + CLS.input + '">' +
-      '<p class="text-[11px] text-slate-400 mt-1.5">' + t('adminIdsHint') + '</p></div>' +
-      '<div class="mb-5"><label class="' + CLS.label + '">' + t('defaultBotLang') + '</label>' +
+'<div class="mb-5"><label class="' + CLS.label + '">' + t('defaultBotLang') + '</label>' +
       '<select id="st-lang" class="' + CLS.input + '"><option value="fa">فارسی</option><option value="en">English</option></select></div>' +
       '<button data-act="saveGeneral" class="' + CLS.btnP + '"><i data-lucide="save" class="w-4 h-4"></i>' + t('save') + '</button></div>' +
 
@@ -1646,7 +1649,6 @@
       $('st-token-cur').innerHTML = st.hasToken
         ? '<span class="text-emerald-500 font-semibold">✓ ' + t('tokenStored') + '</span> <span class="font-mono text-slate-400" dir="ltr">' + esc(st.tokenMasked) + '</span>'
         : '<span class="text-amber-500 font-semibold">⚠ ' + t('tokenMissingWarn') + '</span>';
-      $('st-admins').value = (st.adminIds || []).join(', ');
       $('st-lang').value = st.defaultLang || 'fa';
       $('st-batch').value = (st.broadcast && st.broadcast.batchSize) || 25;
       $('st-delay').value = (st.broadcast && st.broadcast.delayMs) || 40;
@@ -1855,7 +1857,7 @@
 
     // تنظیمات
     saveGeneral: async () => {
-      const body = { adminIds: $('st-admins').value, defaultLang: $('st-lang').value };
+      const body = { defaultLang: $('st-lang').value };
       const tk = $('st-token-in').value.trim();
       if (tk) body.botToken = tk;
       try {

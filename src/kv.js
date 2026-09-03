@@ -82,7 +82,6 @@ export const DEFAULT_MENU = {
 // ── مقادیر پیش‌فرض تنظیمات ─────────────────────────────────────────
 export const DEFAULT_SETTINGS = {
   botToken: '', // اگر خالی باشد از env.BOT_TOKEN استفاده می‌شود
-  adminIds: [], // آیدی عددی ادمین‌های ربات (از قفل کانال معاف‌اند)
   defaultLang: 'fa',
   broadcast: { batchSize: 25, delayMs: 40 }, // تنظیمات Rate-Limit ارسال همگانی
   // قفل کانال: کاربر تا عضو کانال نشود ربات برایش فعال نمی‌شود
@@ -114,6 +113,7 @@ const deepClone = (v) => JSON.parse(JSON.stringify(v));
 
 export async function getSettings(env) {
   const s = (await getJson(env, K.SETTINGS, {})) || {};
+  delete s.adminIds; // فیلد قدیمی — مدیریت فقط از پنل وب است
   return {
     ...DEFAULT_SETTINGS,
     ...s,

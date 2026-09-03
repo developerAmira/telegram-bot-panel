@@ -235,7 +235,6 @@ export function channelJoinUrl(rc) {
 export async function channelGate(env, token, user, settings) {
   const rc = settings.requiredChannel;
   if (!rc || !rc.enabled || !rc.chatId) return { ok: true };
-  if ((settings.adminIds || []).includes(Number(user.id))) return { ok: true }; // ادمین معاف
 
   const now = Date.now();
   if (user.chanOk && user.chanCheckedAt && now - user.chanCheckedAt < 15 * 60 * 1000) {

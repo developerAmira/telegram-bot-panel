@@ -56,7 +56,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 | `/start` | پیام خوش‌آمد (با متغیرهای `{name}`، `{username}`، `{id}`) + دکمه‌های شیشه‌ای + فعال‌سازی کیبورد اصلی |
 | `/help` | نمایش متن راهنما (قابل ویرایش از پنل، جدا برای فا/EN) |
 | `/lang` | تغییر زبان کاربر با دکمه شیشه‌ای — زبان هر کاربر جداگانه در KV ذخیره می‌شود |
-| `/id` | نمایش آیدی عددی کاربر (برای ثبت در «ادمین‌های ربات») |
+| `/id` | نمایش آیدی عددی کاربر (برای ارسال پیام به «کاربران خاص» از پنل) |
 | `/ping` | بررسی فعال بودن ربات |
 | `/support` | شروع گفتگو با پشتیبانی — پیام‌های بعدی به صندوق پنل می‌رسد |
 | `/end` | پایان گفتگو با پشتیبانی |
@@ -72,7 +72,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 7. **نظرسنجی تعاملی:** با دکمه‌های شیشه‌ای به همه/کاربران خاص/کانال ارسال می‌شود؛ با هر کلیک، شمارنده و نمودار میله‌ای همان پیام زنده بروزرسانی می‌شود (تغییر رأی هم ممکن است) و نتایج در «ارسال پیام ← نتایج» دیده می‌شود.
 8. **عکس با لایک/دیسلایک:** عکس با کپشن و دکمه‌های 👍/👎؛ هر کاربر یک رأی قابل‌تغییر دارد و شمارش‌ها روی دکمه‌ها زنده بروزرسانی می‌شوند.
 9. **پشتیبانی دوطرفه:** کاربر `/support` می‌فرستد → پیام‌هایش در صندوق پنل با badge خوانده‌نشده ظاهر می‌شود → پاسخ ادمین مستقیم در تلگرامش تحویل می‌شود.
-10. **قفل کانال:** اگر فعال باشد، کاربر غیرعضو پیام قفل + دکمه عضویت + «عضو شدم» می‌گیرد؛ بعد از عضویت و تایید، ربات برایش فعال می‌شود.
+10. **قفل کانال:** اگر فعال باشد، کاربر غیرعضو پیام قفل + دکمه عضویت + «عضو شدم» می‌گیرد؛ بعد از عضویت و تایید، ربات برایش فعال می‌شود. مدیریت ربات فقط از پنل وب انجام می‌شود (سیستم «ادمین تلگرامی» حذف شده است).
 
 ### امنیت ربات و پنل
 
@@ -106,7 +106,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 | ⌨️ سازنده منوی چندلایه | ویرایش پیام‌ها (فا/EN)؛ دکمه‌های شیشه‌ای ۴ نوع: **لینک، کال‌بک، زیرمنو، پاپ‌آپ متن** + **زیرمنوهای تودرتو چندلایه** با **ویرایشگر اختصاصی دکمه‌ها برای هر زیرمنو** + تعیین **ردیف و ستون** هر دکمه و جابه‌جایی با فلش + **شبیه‌ساز زنده قابل کلیک** و ارسال پیش‌نمایش واقعی |
 | 🛡 صندوق پشتیبانی دوطرفه | کاربر با `/support` پیام می‌دهد → در پنل می‌رسد (badge خوانده‌نشده) → پاسخ ادمین در تلگرامش تحویل می‌شود؛ بستن تیکت |
 | 🔒 قفل کانال (عضویت اجباری) | تا کاربر عضو نشود ربات فعال نمی‌شود؛ تشخیص با `getChatMember` (کش ۱۵ دقیقه)، دکمه «عضو شدم»، معافیت ادمین‌ها |
-| ⚙️ تنظیمات | توکن ربات (ماسک‌شده)، ادمین‌ها، زبان پیش‌فرض، **قفل کانال**، تنظیم/حذف وب‌هوک با یک کلیک، تیونینگ ارسال |
+| ⚙️ تنظیمات | توکن ربات (ماسک‌شده)، زبان پیش‌فرض، **قفل کانال**، تنظیم/حذف وب‌هوک با یک کلیک، تیونینگ ارسال |
 | 🌍 دو زبانه | سوئیچ کامل فا/EN با RTL/LTR، حالت تاریک/روشن، طراحی اول موبایل |
 
 ## 🏗️ معماری
@@ -198,7 +198,7 @@ npx wrangler secret put BOT_TOKEN                   #    توکن BotFather (ا�
 npm run deploy                                      # ۴) دیپلوی 🚀
 ```
 
-سپس با رمز پیش‌فرض **`botpanel123`** وارد شوید ← بلافاصله از **«تنظیمات ← امنیت و رمز عبور»** رمز جدید بگذارید ← **«تنظیم وب‌هوک»** را بزنید ← در تلگرام `/start` بفرستید — و با `/id` آیدی خود را در «ادمین‌های ربات» ذخیره کنید. تمام!
+سپس با رمز پیش‌فرض **`botpanel123`** وارد شوید ← بلافاصله از **«تنظیمات ← امنیت و رمز عبور»** رمز جدید بگذارید ← **«تنظیم وب‌هوک»** را بزنید ← در تلگرام `/start` بفرستید. تمام!
 
 ## 🖥️ توسعه لوکال
 
@@ -246,7 +246,7 @@ This project ships a **working Telegram bot + full admin panel** running togethe
 | `/start` | Welcome message (supports `{name}`, `{username}`, `{id}` variables) + inline buttons + main keyboard |
 | `/help` | Help text (editable from the panel, separate FA/EN versions) |
 | `/lang` | Per-user language switch — each user's language is stored individually in KV |
-| `/id` | Shows the user's numeric ID (to register as a bot admin) |
+| `/id` | Shows the user's numeric ID (for “specific users” targeting in the panel) |
 | `/ping` | Liveness check |
 | `/support` | Start chatting with support — subsequent messages land in the panel inbox |
 | `/end` | End the support chat |
@@ -262,7 +262,7 @@ This project ships a **working Telegram bot + full admin panel** running togethe
 7. **Interactive polls:** sent with inline buttons to everyone / specific users / a channel; every vote live-updates counters and the bar chart on that message (votes are changeable) and results appear in “Broadcast ← Results”.
 8. **Photo with like/dislike:** photo with caption and 👍/👎 buttons; each user has one toggleable vote and counts update live on the buttons.
 9. **Two-way support:** a user sends `/support` → messages appear in the panel inbox with an unread badge → the admin’s reply is delivered straight to their Telegram.
-10. **Channel lock:** when enabled, non-members get a lock message with a join button + “I joined”; after joining and verification, the bot unlocks for them.
+10. **Channel lock:** when enabled, non-members get a lock message with a join button + “I joined”; after joining and verification, the bot unlocks for them. Bot management is done exclusively via the web panel (the “Telegram admins” system has been removed).
 
 ### Security
 
@@ -290,7 +290,7 @@ Webhook accepted only with the secret `X-Telegram-Bot-Api-Secret-Token` header �
 | ⌨️ Multi-level menu builder | Texts (FA/EN); inline buttons of 4 types (**URL, callback, submenu, text popup**) + **nested multi-level submenus** with a **dedicated button editor per submenu** + exact **row & column placement** with arrow controls + **clickable live simulator** and real preview |
 | 🛡 Two-way support inbox | Users message via `/support` → lands in the panel (unread badge) → admin’s reply is delivered in their Telegram; ticket closing |
 | 🔒 Channel lock (force-subscribe) | The bot stays locked until the user joins your channel; detection via `getChatMember` (15-min cache), “I joined” button, admins exempt |
-| ⚙️ Settings | Bot token (masked), admin IDs, default language, **channel lock**, one-click webhook management |
+| ⚙️ Settings | Bot token (masked), default language, **channel lock**, one-click webhook management |
 | 🌍 Bilingual | Full FA/EN with RTL/LTR, dark/light, mobile-first |
 
 ## 🚀 Setup — two methods
@@ -329,7 +329,7 @@ npx wrangler secret put BOT_TOKEN                   #    BotFather token (option
 npm run deploy                                      # 4) deploy 🚀
 ```
 
-Then log in with the default password **`botpanel123`** → immediately set a new one from **“Settings ← Security & password”** → click **“Set webhook”** → send `/start` to the bot — grab your ID with `/id` and save it under “Bot admin IDs”. Done!
+Then log in with the default password **`botpanel123`** → immediately set a new one from **“Settings ← Security & password”** → click **“Set webhook”** → send `/start` to the bot. Done!
 
 ## 🖥️ Local development
 

@@ -112,7 +112,7 @@ console.log('\n── 3) تنظیمات و منو ──');
   let r = await json(await call('PUT', '/api/settings', { token: TOKEN, body: { botToken: '123456:FAKE-TOKEN', adminIds: '111, 222', defaultLang: 'fa' } }));
   ok('PUT /settings', r.status === 200 && r.body.data.settings.hasToken === true);
   ok('توکن ماسک شده', r.body.data.settings.tokenMasked.includes('FAKE'.slice(-2) + '') || !r.body.data.settings.tokenMasked.includes('123456'));
-  ok('ادمین‌ها پارس شدند', JSON.stringify(r.body.data.settings.adminIds) === '[111,222]');
+  ok('adminIds حذف شده و نادیده گرفته می‌شود (مدیریت فقط از پنل وب)', r.body.data.settings.adminIds === undefined);
 
   r = await json(await call('PUT', '/api/menu', { token: TOKEN, body: {
     welcome: { fa: 'سلام {name}', en: 'Hi {name}' },

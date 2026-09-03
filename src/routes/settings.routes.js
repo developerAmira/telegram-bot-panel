@@ -22,7 +22,6 @@ function publicView(settings, envToken) {
     hasToken: !!token,
     tokenMasked: token ? `${'•'.repeat(8)}${token.slice(-4)}` : '',
     source: settings.botToken ? 'kv' : envToken ? 'env' : 'none',
-    adminIds: settings.adminIds,
     defaultLang: settings.defaultLang,
     broadcast: settings.broadcast,
     requiredChannel: settings.requiredChannel,
@@ -44,16 +43,6 @@ r.put('/', async (c) => {
   // توکن ربات — فقط اگر مقدار غیرخالی فرستاده شود جایگزین می‌شود
   if (typeof body.botToken === 'string' && body.botToken.trim()) {
     settings.botToken = body.botToken.trim();
-  }
-
-  // آیدی ادمین‌ها — آرایه عددی یا رشته «123,456»
-  if (Array.isArray(body.adminIds)) {
-    settings.adminIds = body.adminIds.map(Number).filter(Number.isInteger);
-  } else if (typeof body.adminIds === 'string') {
-    settings.adminIds = body.adminIds
-      .split(/[,،\s]+/)
-      .map((x) => Number(x.trim()))
-      .filter(Number.isInteger);
   }
 
   if (['fa', 'en'].includes(body.defaultLang)) settings.defaultLang = body.defaultLang;
