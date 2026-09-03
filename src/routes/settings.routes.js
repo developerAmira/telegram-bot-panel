@@ -25,6 +25,7 @@ function publicView(settings, envToken) {
     adminIds: settings.adminIds,
     defaultLang: settings.defaultLang,
     broadcast: settings.broadcast,
+    requiredChannel: settings.requiredChannel,
   };
 }
 
@@ -56,6 +57,16 @@ r.put('/', async (c) => {
   }
 
   if (['fa', 'en'].includes(body.defaultLang)) settings.defaultLang = body.defaultLang;
+
+  // ── قفل کانال (عضویت اجباری) ─────────────────────────────
+  if (body.requiredChannel && typeof body.requiredChannel === 'object') {
+    const rc = body.requiredChannel;
+    settings.requiredChannel = {
+      enabled: !!rc.enabled,
+      chatId: String(rc.chatId || '').trim().slice(0, 64),
+      url: /^https?:\/\//i.test(String(rc.url || '')) ? String(rc.url).trim().slice(0, 512) : '',
+    };
+  }
 
   if (body.broadcast && typeof body.broadcast === 'object') {
     const bs = Number(body.broadcast.batchSize);

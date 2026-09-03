@@ -197,7 +197,182 @@ console.log('\n── 7) وب‌هوک تنظیم/حذف (توکن فیک) ─�
   ok('setWebhook با توکن فیک → خطای تلگرام', r.status === 400 && typeof r.body.error === 'string');
 }
 
-console.log('\n── 8) تغییر رمز عبور از پنل ──');
+console.log('\n── 8) زیرمنوها و دکمه‌های چندلایه ──');
+{
+  let r = await json(await call('PUT', '/api/menu', { token: TOKEN, body: {
+    welcome: { fa: 'سلام {name}', en: 'Hi {name}' },
+    help: { fa: 'راهنما', en: 'Help' },
+    mainKeyboard: [['/start', '/help'], ['/support']],
+    inlineButtons: [
+      [{ text: 'فروشگاه', type: 'submenu', value: 'shop' }],
+      [{ text: 'پاپ‌آپ', type: 'text', value: 'متن پاپ‌آپ تست' }],
+      [{ text: 'سایت', type: 'url', value: 'https://x.com' }],
+    ],
+    submenus: {
+      shop: { title: '🛍 فروشگاه', text: 'انتخاب کنید:', buttons: [
+        [{ text: 'قیمت', type: 'text', value: 'لیست قیمت…' }],
+        [{ text: 'بیشتر', type: 'submenu', value: 'shop2' }],
+      ]},
+      shop2: { title: 'لایه دوم', text: 'زیرمنوی چندلایه ✓', buttons: [
+        [{ text: 'بازگشت به فروشگاه', type: 'submenu', value: 'shop' }],
+      ]},
+    },
+  } }));
+  ok('PUT /menu با زیرمنوهای چندلایه', r.status === 200);
+  const menu = r.body.data.menu;
+  ok('زیرمنوها ذخیره شدند', menu.submenus.shop && menu.submenus.shop2);
+  ok('دکمه submenu نگه داشته شد', menu.inlineButtons[0][0].type === 'submenu');
+  ok('دکمه text نگه داشته شد', menu.inlineButtons[1][0].type === 'text');
+
+  // ارجاع به زیرمنوی ناموجود باید حذف شود
+  r = await json(await call('PUT', '/api/menu', { token: TOKEN, body: {
+    inlineButtons: [[{ text: 'خراب', type: 'submenu', value: 'ghost' }]],
+    submenus: { shop: { title: 'a', text: 'b', buttons: [] } },
+  } }));
+  ok('ارجاع به زیرمنوی ناموجود حذف شد (fallback پیش‌فرض)', r.status === 200 && r.body.data.menu.inlineButtons.every((row) => row.every((b) => b.type !== 'submenu' || b.value !== 'ghost')));
+}
+
+console.log('\n── 9) نظرسنجی تعاملی + شمارش آرا ──');
+let POLL_ID = '';
+{
+  // ساخت نظرسنجی برای یک کاربر خاص (ارسال به تلگرام فیک می‌شکد ولی رکورد ساخته می‌شود)
+  let r = await json(await call('POST', '/api/broadcast', { token: TOKEN, body: {
+    kind: 'poll', target: 'users', userIds: '42',
+    poll: { question: 'رنگ محبوب؟', options: ['قرمز', 'آبی', 'سبز'] },
+  } }));
+  ok('ساخت نظرسنجی (direct)', r.status === 200 && r.body.data.mode === 'direct');
+  r = await json(await call('GET', '/api/engagement', { token: TOKEN }));
+  ok('نظرسنجی در لیست تعامل‌ها', r.body.data.polls.some((p) => p.q === 'رنگ محبوب؟'));
+  POLL_ID = (r.body.data.polls.find((p) => p.q === 'رنگ محبوب؟') || {}).id || '';
+
+  // رأی از طریق وب‌هوک (کال‌بک) — گزینه ۱
+  await call('POST', '/telegram/webhook', { body: {
+    update_id: 500, callback_query: {
+      id: 'cb1', from: { id: 42, first_name: 'Ali' },
+      message: { message_id: 7, chat: { id: 42 } }, data: `poll:${POLL_ID}:1`,
+    },
+  }, headers: { 'x-telegram-bot-api-secret-token': 'whsec-test' } });
+  await new Promise((res) => setTimeout(res, 500));
+  r = await json(await call('GET', '/api/engagement', { token: TOKEN }));
+  let poll = r.body.data.polls.find((p) => p.id === POLL_ID);
+  ok('رأی اول شمرده شد', poll && poll.opts[1].n === 1 && poll.total === 1);
+
+  // تغییر رأی به گزینه ۲
+  await call('POST', '/telegram/webhook', { body: {
+    update_id: 501, callback_query: {
+      id: 'cb2', from: { id: 42, first_name: 'Ali' },
+      message: { message_id: 7, chat: { id: 42 } }, data: `poll:${POLL_ID}:2`,
+    },
+  }, headers: { 'x-telegram-bot-api-secret-token': 'whsec-test' } });
+  await new Promise((res) => setTimeout(res, 500));
+  r = await json(await call('GET', '/api/engagement', { token: TOKEN }));
+  poll = r.body.data.polls.find((p) => p.id === POLL_ID);
+  ok('تغییر رأی (کاهش قبلی/افزایش جدید)', poll && poll.opts[1].n === 0 && poll.opts[2].n === 1);
+
+  // رأی کاربر دوم (اول باید به‌عنوان کاربر ثبت شود — کاربر ناشناس رد می‌شود)
+  await call('POST', '/telegram/webhook', { body: {
+    update_id: 499, message: { message_id: 19, text: '/start', chat: { id: 43 },
+      from: { id: 43, first_name: 'Reza' } },
+  }, headers: { 'x-telegram-bot-api-secret-token': 'whsec-test' } });
+  await new Promise((res) => setTimeout(res, 400));
+  await call('POST', '/telegram/webhook', { body: {
+    update_id: 502, callback_query: {
+      id: 'cb3', from: { id: 43, first_name: 'Reza' },
+      message: { message_id: 8, chat: { id: 43 } }, data: `poll:${POLL_ID}:1`,
+    },
+  }, headers: { 'x-telegram-bot-api-secret-token': 'whsec-test' } });
+  await new Promise((res) => setTimeout(res, 500));
+  r = await json(await call('GET', '/api/engagement', { token: TOKEN }));
+  poll = r.body.data.polls.find((p) => p.id === POLL_ID);
+  ok('رأی کاربر دوم', poll && poll.total === 2);
+}
+
+console.log('\n── 10) پست عکس با لایک/دیسلایک ──');
+let POST_ID = '';
+{
+  let r = await json(await call('POST', '/api/broadcast', { token: TOKEN, body: {
+    kind: 'photo', target: 'chat', chatId: -100123,
+    photo: { url: 'https://example.com/pic.jpg', caption: 'کپشن تست' },
+  } }));
+  ok('ساخت پست عکس (ارسال به کانال فیک)', r.status === 200 && r.body.data.mode === 'direct');
+  r = await json(await call('GET', '/api/engagement', { token: TOKEN }));
+  const post = r.body.data.posts.find((p) => p.caption === 'کپشن تست');
+  ok('پست در لیست تعامل‌ها', !!post);
+  POST_ID = post ? post.id : '';
+
+  // لایک → دیسلایک → برداشتن
+  const react = async (uid, act) => {
+    await call('POST', '/telegram/webhook', { body: {
+      update_id: 600 + uid, callback_query: {
+        id: 'c' + uid + act, from: { id: uid, first_name: 'U' + uid },
+        message: { message_id: 9, chat: { id: uid } }, data: `react:${POST_ID}:${act}`,
+      },
+    }, headers: { 'x-telegram-bot-api-secret-token': 'whsec-test' } });
+    await new Promise((res) => setTimeout(res, 400));
+  };
+  await react(42, 'l');
+  await react(43, 'l');
+  await react(43, 'd'); // تغییر به دیسلایک
+  r = await json(await call('GET', '/api/engagement', { token: TOKEN }));
+  const p2 = r.body.data.posts.find((p) => p.id === POST_ID);
+  ok('لایک/دیسلایک شمرده شد (l=1, d=1)', p2 && p2.likes === 1 && p2.dislikes === 1);
+  await react(42, 'l'); // برداشتن لایک
+  r = await json(await call('GET', '/api/engagement', { token: TOKEN }));
+  const p3 = r.body.data.posts.find((p) => p.id === POST_ID);
+  ok('برداشتن رأی (toggle)', p3 && p3.likes === 0);
+}
+
+console.log('\n── 11) پشتیبانی دوطرفه ──');
+{
+  // کاربر /support می‌فرستد
+  await call('POST', '/telegram/webhook', { body: {
+    update_id: 700, message: { message_id: 20, text: '/support', chat: { id: 555 },
+      from: { id: 555, first_name: 'Cust', username: 'cust' } },
+  }, headers: { 'x-telegram-bot-api-secret-token': 'whsec-test' } });
+  await new Promise((res) => setTimeout(res, 400));
+  // پیام متنی → باید به تیکت برود
+  await call('POST', '/telegram/webhook', { body: {
+    update_id: 701, message: { message_id: 21, text: 'سلام، مشکل دارم!', chat: { id: 555 },
+      from: { id: 555, first_name: 'Cust' } },
+  }, headers: { 'x-telegram-bot-api-secret-token': 'whsec-test' } });
+  await new Promise((res) => setTimeout(res, 400));
+
+  let r = await json(await call('GET', '/api/support/tickets', { token: TOKEN }));
+  const t0 = r.body.data.tickets.find((x) => x.id === '555');
+  ok('تیکت ساخته شد و پیام کاربر ثبت شد', t0 && t0.last && t0.last.includes('مشکل'));
+  ok('خوانده‌نشده = 1', t0 && t0.unread === 1);
+
+  r = await json(await call('GET', '/api/support/tickets/555', { token: TOKEN }));
+  ok('خواندن تیکت (unread صفر شد)', r.status === 200 && r.body.data.ticket.messages.some((m) => m.s === 'u' && m.t.includes('مشکل')));
+
+  r = await json(await call('POST', '/api/support/tickets/555/reply', { token: TOKEN, body: { text: 'پاسخ تست پشتیبانی' } }));
+  ok('پاسخ ادمین ثبت شد', r.status === 200 && r.body.data.ticket.messages.some((m) => m.s === 'a'));
+
+  r = await json(await call('POST', '/api/support/tickets/555/close', { token: TOKEN }));
+  ok('بستن تیکت', r.status === 200);
+}
+
+console.log('\n── 12) قفل کانال ──');
+{
+  let r = await json(await call('PUT', '/api/settings', { token: TOKEN, body: {
+    requiredChannel: { enabled: true, chatId: '@test_channel', url: '' },
+  } }));
+  ok('فعال‌سازی قفل کانال', r.status === 200 && r.body.data.settings.requiredChannel.enabled === true);
+
+  // کاربر جدید با توکن فیک → بررسی عضویت خطا می‌دهد → fail-open → کاربر عادی پردازش می‌شود
+  await call('POST', '/telegram/webhook', { body: {
+    update_id: 800, message: { message_id: 30, text: '/start', chat: { id: 888 },
+      from: { id: 888, first_name: 'Locked' } },
+  }, headers: { 'x-telegram-bot-api-secret-token': 'whsec-test' } });
+  await new Promise((res) => setTimeout(res, 600));
+  r = await json(await call('GET', '/api/users?q=888', { token: TOKEN }));
+  ok('fail-open: با خطای API عضویت، کاربر رد نشد', r.body.data.rows.length === 1);
+
+  // خاموش کردن قفل برای بقیه تست‌ها
+  await call('PUT', '/api/settings', { token: TOKEN, body: { requiredChannel: { enabled: false, chatId: '', url: '' } } });
+}
+
+console.log('\n── 13) تغییر رمز عبور از پنل ──');
 {
   // رمز فعلی غلط → رد
   let r = await json(await call('POST', '/api/auth/change-password', { token: TOKEN, body: { currentPassword: 'wrong', newPassword: 'test-new-pass-456' } }));

@@ -15,6 +15,8 @@ import authRoutes from './routes/auth.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import usersRoutes from './routes/users.routes.js';
 import broadcastRoutes from './routes/broadcast.routes.js';
+import engagementRoutes from './routes/engagement.routes.js';
+import supportRoutes from './routes/support.routes.js';
 import menuRoutes from './routes/menu.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 
@@ -25,6 +27,8 @@ api.route('/auth', authRoutes);
 api.route('/dashboard', dashboardRoutes);
 api.route('/users', usersRoutes);
 api.route('/broadcast', broadcastRoutes);
+api.route('/engagement', engagementRoutes);
+api.route('/support', supportRoutes);
 api.route('/menu', menuRoutes);
 api.route('/settings', settingsRoutes);
 

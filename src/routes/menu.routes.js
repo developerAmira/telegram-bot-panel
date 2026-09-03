@@ -1,7 +1,14 @@
 // ═══════════════════════════════════════════════════════════════════
-//  routes/menu.routes.js — سازنده منو و دکمه‌های شیشه‌ای
+//  routes/menu.routes.js — سازنده منو، زیرمنوهای چندلایه و دکمه‌ها
+//
+//  انواع دکمه شیشه‌ای:
+//   url      → باز کردن لینک
+//   callback → کال‌بک عمومی (مثلاً support:open یا setlang:menu)
+//   submenu  → باز کردن یک زیرمنو (value = شناسه زیرمنو، چندلایه)
+//   text     → نمایش متن به‌صورت پاپ‌آپ (alert)
+//
 //  GET  /api/menu          → منوی فعلی + پیش‌فرض‌ها
-//  PUT  /api/menu          → ذخیره منو (اعتبارسنجی کامل)
+//  PUT  /api/menu          → ذخیره (اعتبارسنجی کامل + حذف ارجاع‌های خراب)
 //  POST /api/menu/preview  → ارسال پیش‌نمایش /start به یک چت {chatId}
 // ═══════════════════════════════════════════════════════════════════
 
@@ -15,9 +22,45 @@ r.use('*', requireAuth);
 
 const fail = (c, error, status = 400) => c.json({ ok: false, error }, status);
 
-// ── اعتبارسنجی و پاک‌سازی ورودی منو ────────────────────────────────
+const SUBMENU_ID_RE = /^[a-z0-9_-]{1,32}$/;
+
+// ── اعتبارسنجی ردیف‌های دکمه (برای روت و زیرمنوها) ────────────────
+// dangling: ارجاع زیرمنو به شناسه ناموجود → دکمه حذف می‌شود
+function sanitizeButtons(input, validSubIds, { maxRows = 10 } = {}) {
+  const rows = [];
+  if (!Array.isArray(input)) return rows;
+  for (const row of input.slice(0, maxRows)) {
+    if (!Array.isArray(row)) continue;
+    const btns = [];
+    for (const b of row.slice(0, 8)) {
+      const text = String((b && b.text) || '').trim().slice(0, 64);
+      if (!text) continue;
+      const type = ['url', 'callback', 'submenu', 'text'].includes(b.type) ? b.type : 'callback';
+      const value = String((b && b.value) || '').trim();
+      if (type === 'url') {
+        if (/^https?:\/\//i.test(value)) btns.push({ text, type, value: value.slice(0, 512) });
+      } else if (type === 'callback') {
+        if (value.length >= 1 && value.length <= 64) btns.push({ text, type, value });
+      } else if (type === 'submenu') {
+        if (SUBMENU_ID_RE.test(value) && validSubIds.has(value)) btns.push({ text, type, value });
+      } else if (type === 'text') {
+        if (value.length >= 1 && value.length <= 200) btns.push({ text, type, value });
+      }
+    }
+    if (btns.length) rows.push(btns);
+  }
+  return rows;
+}
+
+// ── اعتبارسنجی و پاک‌سازی کل منو ──────────────────────────────────
 function sanitizeMenu(input = {}) {
   const clean = (s, max) => String(s ?? '').trim().slice(0, max);
+
+  // ۱) ابتدا شناسه‌های معتبر زیرمنوها را جمع کن (برای اعتبارسنجی ارجاع‌ها)
+  const rawSubs = (input && typeof input.submenus === 'object' && input.submenus) || {};
+  const validSubIds = new Set(
+    Object.keys(rawSubs).filter((id) => SUBMENU_ID_RE.test(id))
+  );
 
   const welcome = {
     fa: clean(input?.welcome?.fa, 3500) || DEFAULT_MENU.welcome.fa,
@@ -28,49 +71,36 @@ function sanitizeMenu(input = {}) {
     en: clean(input?.help?.en, 3500) || DEFAULT_MENU.help.en,
   };
 
-  // کیبورد اصلی: حداکثر ۱۲ ردیف × ۸ دکمه، متن ۱..۴۸ کاراکتر
+  // کیبورد اصلی: حداکثر ۱۲ ردیف × ۸ دکمه
   const mainKeyboard = [];
   if (Array.isArray(input?.mainKeyboard)) {
     for (const row of input.mainKeyboard.slice(0, 12)) {
       if (!Array.isArray(row)) continue;
-      const texts = row
-        .map((t) => clean(t, 48))
-        .filter((t) => t.length >= 1);
+      const texts = row.map((t) => clean(t, 48)).filter((t) => t.length >= 1);
       if (texts.length) mainKeyboard.push(texts.slice(0, 8));
     }
   }
 
-  // دکمه‌های شیشه‌ای: حداکثر ۱۰ ردیف × ۸ دکمه
-  // type: 'url' (لینک http/https) یا 'callback' (حداکثر ۶۴ بایت)
-  const inlineButtons = [];
-  if (Array.isArray(input?.inlineButtons)) {
-    for (const row of input.inlineButtons.slice(0, 10)) {
-      if (!Array.isArray(row)) continue;
-      const btns = [];
-      for (const b of row.slice(0, 8)) {
-        const text = clean(b?.text, 64);
-        const type = b?.type === 'url' ? 'url' : 'callback';
-        const value = clean(b?.value, 512);
-        if (!text) continue;
-        if (type === 'url') {
-          if (!/^https?:\/\//i.test(value)) continue;
-          inlineOk(btns, { text, type, value: value.slice(0, 512) });
-        } else {
-          if (value.length < 1 || value.length > 64) continue;
-          inlineOk(btns, { text, type, value });
-        }
-      }
-      if (btns.length) inlineButtons.push(btns);
-    }
+  // دکمه‌های شیشه‌ای روت + زیرمنوها
+  const inlineButtons = sanitizeButtons(input?.inlineButtons, validSubIds, { maxRows: 10 });
+  const submenus = {};
+  for (const id of validSubIds) {
+    const sm = rawSubs[id] || {};
+    const buttons = sanitizeButtons(sm.buttons, validSubIds, { maxRows: 10 });
+    submenus[id] = {
+      title: clean(sm.title, 64),
+      text: clean(sm.text, 3500),
+      buttons: buttons.length ? buttons : [[{ text: '…', type: 'text', value: '…' }]],
+    };
   }
 
+  // fallback های پیش‌فرض
   if (!mainKeyboard.length) mainKeyboard.push(...JSON.parse(JSON.stringify(DEFAULT_MENU.mainKeyboard)));
   if (!inlineButtons.length) inlineButtons.push(...JSON.parse(JSON.stringify(DEFAULT_MENU.inlineButtons)));
+  if (!Object.keys(submenus).length) submenus.shop = JSON.parse(JSON.stringify(DEFAULT_MENU.submenus.shop));
 
-  return { welcome, help, mainKeyboard, inlineButtons };
+  return { welcome, help, mainKeyboard, inlineButtons, submenus };
 }
-
-const inlineOk = (arr, b) => arr.push(b);
 
 // ── خواندن منو ─────────────────────────────────────────────────────
 r.get('/', async (c) =>
@@ -96,7 +126,6 @@ r.post('/preview', async (c) => {
 
   const menu = await getMenu(c.env);
   try {
-    // پیش‌نمایش دقیقاً مثل /start واقعی: خوش‌آمد + دکمه‌ها + کیبورد اصلی
     await sendStart(token, chatId, { id: chatId, firstName: 'Admin' }, menu, 'fa');
     return c.json({ ok: true, data: { sent: true } });
   } catch (e) {

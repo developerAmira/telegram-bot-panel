@@ -58,6 +58,8 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 | `/lang` | تغییر زبان کاربر با دکمه شیشه‌ای — زبان هر کاربر جداگانه در KV ذخیره می‌شود |
 | `/id` | نمایش آیدی عددی کاربر (برای ثبت در «ادمین‌های ربات») |
 | `/ping` | بررسی فعال بودن ربات |
+| `/support` | شروع گفتگو با پشتیبانی — پیام‌های بعدی به صندوق پنل می‌رسد |
+| `/end` | پایان گفتگو با پشتیبانی |
 
 ### جریان کار ربات
 
@@ -67,6 +69,10 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 4. **مسدودسازی:** کاربر مسدودشده به‌صورت کاملاً بی‌صدا نادیده گرفته می‌شود (نه جواب می‌گیرد و نه در ارسال همگانی حساب می‌شود) و دلیل مسدودی ثبت می‌شود.
 5. **ارسال همگانی هوشمند:** با رعایت محدودیت نرخ تلگرام (~۲۵ پیام/ثانیه قابل تنظیم)، به‌صورت دسته‌ای ارسال می‌شود؛ پیشرفت زنده در پنل، امکان توقف/ادامه، و تشخیص خودکار افرادی که ربات را بلاک کرده‌اند (خطای 403 → علامت‌گذاری و حذف از ارسال‌های بعدی).
 6. **پیام مستقیم:** ارسال پیام شخصی به هر کاربر از داخل پنل با فرمت HTML یا Markdown.
+7. **نظرسنجی تعاملی:** با دکمه‌های شیشه‌ای به همه/کاربران خاص/کانال ارسال می‌شود؛ با هر کلیک، شمارنده و نمودار میله‌ای همان پیام زنده بروزرسانی می‌شود (تغییر رأی هم ممکن است) و نتایج در «ارسال پیام ← نتایج» دیده می‌شود.
+8. **عکس با لایک/دیسلایک:** عکس با کپشن و دکمه‌های 👍/👎؛ هر کاربر یک رأی قابل‌تغییر دارد و شمارش‌ها روی دکمه‌ها زنده بروزرسانی می‌شوند.
+9. **پشتیبانی دوطرفه:** کاربر `/support` می‌فرستد → پیام‌هایش در صندوق پنل با badge خوانده‌نشده ظاهر می‌شود → پاسخ ادمین مستقیم در تلگرامش تحویل می‌شود.
+10. **قفل کانال:** اگر فعال باشد، کاربر غیرعضو پیام قفل + دکمه عضویت + «عضو شدم» می‌گیرد؛ بعد از عضویت و تایید، ربات برایش فعال می‌شود.
 
 ### امنیت ربات و پنل
 
@@ -93,10 +99,14 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 |---|---|
 | 🔐 احراز هویت امن | رمز پیش‌فرض داخلی `botpanel123` — تغییر از «تنظیمات ← امنیت و رمز عبور»، ذخیره به‌صورت هش SHA-256 در KV، مقایسه timing-safe، نشست ۷روزه، محدودیت نرخ ورود، ابطال نشست‌های دیگر پس از تغییر رمز |
 | 📊 داشبورد | آمار کلی، **نشانگر وضعیت لحظه‌ای ورکر** (تأخیر + مرکز داده + پینگ هر ۳۰ ثانیه)، وضعیت وب‌هوک تلگرام، کاربران اخیر |
-| 👥 مدیریت کاربران | صفحه‌بندی cursor بومی KV، جستجو، مسدود/آزادسازی با دلیل، پیام مستقیم، جزئیات کامل |
-| 📢 موتور ارسال همگانی | متن + HTML/MarkdownV2 + دکمه‌های URL، هدف‌گیری (همه/فعال ۷ روز/فعال ۳۰ روز)، Rate-Limit قابل تنظیم، پیشرفت زنده، توقف/ادامه |
-| ⌨️ سازنده منو | ویرایش پیام‌ها (فا/EN)، کیبورد اصلی، دکمه‌های شیشه‌ای، **شبیه‌ساز زنده ربات** + ارسال پیش‌نمایش واقعی |
-| ⚙️ تنظیمات | توکن ربات (ماسک‌شده)، ادمین‌ها، زبان پیش‌فرض، تنظیم/حذف وب‌هوک با یک کلیک، تیونینگ ارسال |
+| 👥 مدیریت کاربران | صفحه‌بندی cursor بومی KV، جستجو، مسدود/آزادسازی با دلیل، **پیام مستقیم به یک کاربر خاص**، جزئیات کامل |
+| 📢 ارسال پیام/نظرسنجی/عکس | متن + HTML/MarkdownV2 + دکمه‌های URL به **همه، فعال‌ها، کاربران خاص یا کانال/گروه**؛ Rate-Limit قابل تنظیم، پیشرفت زنده، توقف/ادامه، تشخیص خودکار بلاک‌کنندگان ربات |
+| 📊 نظرسنجی تعاملی | سؤال + ۲ تا ۱۰ گزینه با دکمه شیشه‌ای — با هر کلیک **اعداد و نمودار میله‌ای زنده بروزرسانی می‌شوند**؛ امکان تغییر رأی، دکمه بروزرسانی نتایج و مشاهده نتایج در پنل |
+| 🖼 عکس/فایل با واکنش | ارسال عکس (لینک مستقیم) با کپشن + دکمه‌های **👍 لایک / 👎 دیسلایک** با شمارش زنده و امکان برداشتن رأی |
+| ⌨️ سازنده منوی چندلایه | ویرایش پیام‌ها (فا/EN)، کیبورد اصلی، دکمه‌های شیشه‌ای ۴ نوع: **لینک، کال‌بک، زیرمنو، پاپ‌آپ متن** + **زیرمنوهای تودرتو چندلایه** با دکمه بازگشت خودکار + **شبیه‌ساز زنده قابل کلیک** و ارسال پیش‌نمایش واقعی |
+| 🛡 صندوق پشتیبانی دوطرفه | کاربر با `/support` پیام می‌دهد → در پنل می‌رسد (badge خوانده‌نشده) → پاسخ ادمین در تلگرامش تحویل می‌شود؛ بستن تیکت |
+| 🔒 قفل کانال (عضویت اجباری) | تا کاربر عضو نشود ربات فعال نمی‌شود؛ تشخیص با `getChatMember` (کش ۱۵ دقیقه)، دکمه «عضو شدم»، معافیت ادمین‌ها |
+| ⚙️ تنظیمات | توکن ربات (ماسک‌شده)، ادمین‌ها، زبان پیش‌فرض، **قفل کانال**، تنظیم/حذف وب‌هوک با یک کلیک، تیونینگ ارسال |
 | 🌍 دو زبانه | سوئیچ کامل فا/EN با RTL/LTR، حالت تاریک/روشن، طراحی اول موبایل |
 
 ## 🏗️ معماری
@@ -202,7 +212,7 @@ npm run smoke                     # ۲۹ تست خودکار
 
 همه پاسخ‌ها `{ok,data}` / `{ok,error}` با احراز هویت `Authorization: Bearer <token>`:
 
-`POST /api/auth/login` · `GET /api/dashboard/stats` · `GET /api/users?cursor&limit&q` · `POST /api/users/:id/ban|unban|message` · `POST /api/broadcast` + `/:id/tick|pause|resume|stop` · `GET/PUT /api/menu` · `POST /api/menu/preview` · `GET/PUT /api/settings` · `POST /api/settings/webhook` · `GET /api/health` · `POST /telegram/webhook`
+`POST /api/auth/login` · `GET /api/dashboard/stats` · `GET /api/users?cursor&limit&q` · `POST /api/users/:id/ban|unban|message` · `POST /api/broadcast` (text/poll/photo → all/active/users/chat) + `/:id/tick|pause|resume|stop` · `GET /api/engagement` · `/api/support/tickets…` · `GET/PUT /api/menu` · `POST /api/menu/preview` · `GET/PUT /api/settings` · `POST /api/settings/webhook` · `GET /api/health` · `POST /telegram/webhook`
 
 ## ⚠️ نکات مقیاس‌پذیری
 
@@ -238,6 +248,8 @@ This project ships a **working Telegram bot + full admin panel** running togethe
 | `/lang` | Per-user language switch — each user's language is stored individually in KV |
 | `/id` | Shows the user's numeric ID (to register as a bot admin) |
 | `/ping` | Liveness check |
+| `/support` | Start chatting with support — subsequent messages land in the panel inbox |
+| `/end` | End the support chat |
 
 ### How the bot works
 
@@ -247,6 +259,10 @@ This project ships a **working Telegram bot + full admin panel** running togethe
 4. **Banning:** banned users are silently ignored (no replies, excluded from broadcasts) with the ban reason recorded.
 5. **Smart broadcasts:** rate-limited (~25 msg/s, tunable) batch sending with live progress, pause/resume, and automatic detection of users who blocked the bot (403 → flagged and skipped afterwards).
 6. **Direct messages:** send an HTML/Markdown message to any individual user from the panel.
+7. **Interactive polls:** sent with inline buttons to everyone / specific users / a channel; every vote live-updates counters and the bar chart on that message (votes are changeable) and results appear in “Broadcast ← Results”.
+8. **Photo with like/dislike:** photo with caption and 👍/👎 buttons; each user has one toggleable vote and counts update live on the buttons.
+9. **Two-way support:** a user sends `/support` → messages appear in the panel inbox with an unread badge → the admin’s reply is delivered straight to their Telegram.
+10. **Channel lock:** when enabled, non-members get a lock message with a join button + “I joined”; after joining and verification, the bot unlocks for them.
 
 ### Security
 
@@ -267,10 +283,14 @@ Webhook accepted only with the secret `X-Telegram-Bot-Api-Secret-Token` header �
 |---|---|
 | 🔐 Secure auth | Built-in default password `botpanel123` — change it from “Settings ← Security & password”, stored as a SHA-256 hash in KV, timing-safe compare, 7-day sessions, login rate-limiting, other sessions invalidated on password change |
 | 📊 Dashboard | Stats, **live worker status** (latency + data center + 30s pings), Telegram webhook health, recent users |
-| 👥 User management | KV-native cursor pagination, search, ban/unban, direct messages, full details |
-| 📢 Broadcast engine | Text + HTML/MarkdownV2 + URL buttons, targeting (all / active 7d / 30d), tunable rate limiting, live progress |
-| ⌨️ Menu builder | Texts (FA/EN), main keyboard, inline buttons, **live bot simulator** + real preview |
-| ⚙️ Settings | Bot token (masked), admin IDs, default language, one-click webhook management |
+| 👥 User management | KV-native cursor pagination, search, ban/unban, **direct message to a specific user**, full details |
+| 📢 Message / Poll / Photo sending | Text + HTML/MarkdownV2 + URL buttons to **everyone, active users, specific users or a channel/group**; tunable rate limiting, live progress |
+| 📊 Interactive polls | Question + 2–10 options with inline buttons — **counts and text bars update live** on every vote, vote changing, refresh button, results in the panel |
+| 🖼 Photo with reactions | Photo (direct URL) with caption + **👍 like / 👎 dislike** buttons, live counters, toggleable votes |
+| ⌨️ Multi-level menu builder | Texts (FA/EN), main keyboard, inline buttons of 4 types (**URL, callback, submenu, text popup**) + **nested multi-level submenus** with automatic back buttons + **clickable live simulator** and real preview |
+| 🛡 Two-way support inbox | Users message via `/support` → lands in the panel (unread badge) → admin’s reply is delivered in their Telegram; ticket closing |
+| 🔒 Channel lock (force-subscribe) | The bot stays locked until the user joins your channel; detection via `getChatMember` (15-min cache), “I joined” button, admins exempt |
+| ⚙️ Settings | Bot token (masked), admin IDs, default language, **channel lock**, one-click webhook management |
 | 🌍 Bilingual | Full FA/EN with RTL/LTR, dark/light, mobile-first |
 
 ## 🚀 Setup — two methods
@@ -321,7 +341,7 @@ npm run smoke                     # 39 automated tests
 
 ## 🔌 API (summary)
 
-`POST /api/auth/login` · `GET /api/dashboard/stats` · `GET /api/users?cursor&limit&q` · `POST /api/users/:id/ban|unban|message` · `POST /api/broadcast` + `/:id/tick|pause|resume|stop` · `GET/PUT /api/menu` · `POST /api/menu/preview` · `GET/PUT /api/settings` · `POST /api/settings/webhook` · `GET /api/health` · `POST /telegram/webhook`
+`POST /api/auth/login` · `GET /api/dashboard/stats` · `GET /api/users?cursor&limit&q` · `POST /api/users/:id/ban|unban|message` · `POST /api/broadcast` (text/poll/photo → all/active/users/chat) + `/:id/tick|pause|resume|stop` · `GET /api/engagement` · `/api/support/tickets…` · `GET/PUT /api/menu` · `POST /api/menu/preview` · `GET/PUT /api/settings` · `POST /api/settings/webhook` · `GET /api/health` · `POST /telegram/webhook`
 
 ## ⚠️ Scaling notes
 
