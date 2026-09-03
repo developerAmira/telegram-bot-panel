@@ -365,12 +365,5 @@ KV counters are approximate (no atomic increments → use D1 for exact stats) ·
 
 [![@x.amirrezaa1](assets/instagram-badge.svg)](https://instagram.com/x.amirrezaa1)
 
-**تلگرام | Telegram:** [@developer_as](https://t.me/developer_as) · **اینستاگرام | Instagram:** [@x.amirrezaa1](https://instagram.com/x.amirrezaa1)
-
-پایین همه صفحات پنل، نوار رنگی اعتبار با متن «**توسعه یافته و ساخته شده توسط aMirsEdighian**» به‌همراه لوگوی تلگرام و اینستاگرام نمایش داده می‌شود (کدشده و غیرقابل‌ویرایش).
-
-A distinct gradient credit band — *“Developed & built by aMirsEdighian”* — with Telegram/Instagram logos is shown at the bottom of every panel page (obfuscated & tamper-proof).
-
-ساخته‌شده با ❤️ روی Cloudflare Workers · Made with ❤️ on Cloudflare Workers
 
 </div>
