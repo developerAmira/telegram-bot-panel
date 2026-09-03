@@ -53,6 +53,10 @@
     html, body { overflow-x: clip; }
     @supports not (overflow: clip) { html, body { overflow-x: hidden; } }
 
+    /* متن‌های رابط کاربری قابل انتخاب/کپی نباشند (فیلدهای ورودی برای تایپ استثنا هستند) */
+    body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+    input, textarea, select, [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
+
     /* ═══ مقاوم‌سازی در برابر بزرگ‌نمایی فونت اندروید (Settings◀Font size تا ۱۳۷٪+) ═══
        فرزندان grid/flex به‌طور پیش‌فرض min-width:auto دارند و زیر عرض صفحه جمع نمی‌شوند؛
        با min-width:0 متن‌ها به خط بعد می‌روند به‌جای اینکه کادر از صفحه بیرون بزند. */
