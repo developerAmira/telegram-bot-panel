@@ -65,7 +65,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 
 1. **ثبت خودکار کاربران:** اولین پیام هر کاربر → ذخیره نام، یوزرنیم، زمان عضویت، زبان و آخرین فعالیت در KV → نمایش فوری در پنل.
 2. **دو زبانه واقعی:** هر کاربر با `/lang` زبان خود را انتخاب می‌کند و از آن به بعد پیام‌ها به همان زبان ارسال می‌شود؛ زبان پیش‌فرض از پنل قابل تغییر است.
-3. **منوی کامل قابل ویرایش:** متن خوش‌آمد/راهنما، کیبورد اصلی و دکمه‌های شیشه‌ای (لینک یا کال‌بک) همگی از پنل ویرایش می‌شوند و **بدون دیپلوی مجدد** روی ربات اعمال می‌شوند.
+3. **منوی کامل قابل ویرایش:** متن خوش‌آمد/راهنما و دکمه‌های شیشه‌ای (لینک، کال‌بک، زیرمنو، پاپ‌آپ) همگی از پنل ویرایش می‌شوند و **بدون دیپلوی مجدد** اعمال می‌شوند؛ جای هر دکمه با انتخاب **ردیف و ستون** مشخص و با فلش‌ها جابه‌جا می‌شود.
 4. **مسدودسازی:** کاربر مسدودشده به‌صورت کاملاً بی‌صدا نادیده گرفته می‌شود (نه جواب می‌گیرد و نه در ارسال همگانی حساب می‌شود) و دلیل مسدودی ثبت می‌شود.
 5. **ارسال همگانی هوشمند:** با رعایت محدودیت نرخ تلگرام (~۲۵ پیام/ثانیه قابل تنظیم)، به‌صورت دسته‌ای ارسال می‌شود؛ پیشرفت زنده در پنل، امکان توقف/ادامه، و تشخیص خودکار افرادی که ربات را بلاک کرده‌اند (خطای 403 → علامت‌گذاری و حذف از ارسال‌های بعدی).
 6. **پیام مستقیم:** ارسال پیام شخصی به هر کاربر از داخل پنل با فرمت HTML یا Markdown.
@@ -103,7 +103,7 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 | 📢 ارسال پیام/نظرسنجی/عکس | متن + HTML/MarkdownV2 + دکمه‌های URL به **همه، فعال‌ها، کاربران خاص یا کانال/گروه**؛ Rate-Limit قابل تنظیم، پیشرفت زنده، توقف/ادامه، تشخیص خودکار بلاک‌کنندگان ربات |
 | 📊 نظرسنجی تعاملی | سؤال + ۲ تا ۱۰ گزینه با دکمه شیشه‌ای — با هر کلیک **اعداد و نمودار میله‌ای زنده بروزرسانی می‌شوند**؛ امکان تغییر رأی، دکمه بروزرسانی نتایج و مشاهده نتایج در پنل |
 | 🖼 عکس/فایل با واکنش | ارسال عکس (لینک مستقیم) با کپشن + دکمه‌های **👍 لایک / 👎 دیسلایک** با شمارش زنده و امکان برداشتن رأی |
-| ⌨️ سازنده منوی چندلایه | ویرایش پیام‌ها (فا/EN)، کیبورد اصلی، دکمه‌های شیشه‌ای ۴ نوع: **لینک، کال‌بک، زیرمنو، پاپ‌آپ متن** + **زیرمنوهای تودرتو چندلایه** با دکمه بازگشت خودکار + **شبیه‌ساز زنده قابل کلیک** و ارسال پیش‌نمایش واقعی |
+| ⌨️ سازنده منوی چندلایه | ویرایش پیام‌ها (فا/EN)؛ دکمه‌های شیشه‌ای ۴ نوع: **لینک، کال‌بک، زیرمنو، پاپ‌آپ متن** + **زیرمنوهای تودرتو چندلایه** با **ویرایشگر اختصاصی دکمه‌ها برای هر زیرمنو** + تعیین **ردیف و ستون** هر دکمه و جابه‌جایی با فلش + **شبیه‌ساز زنده قابل کلیک** و ارسال پیش‌نمایش واقعی |
 | 🛡 صندوق پشتیبانی دوطرفه | کاربر با `/support` پیام می‌دهد → در پنل می‌رسد (badge خوانده‌نشده) → پاسخ ادمین در تلگرامش تحویل می‌شود؛ بستن تیکت |
 | 🔒 قفل کانال (عضویت اجباری) | تا کاربر عضو نشود ربات فعال نمی‌شود؛ تشخیص با `getChatMember` (کش ۱۵ دقیقه)، دکمه «عضو شدم»، معافیت ادمین‌ها |
 | ⚙️ تنظیمات | توکن ربات (ماسک‌شده)، ادمین‌ها، زبان پیش‌فرض، **قفل کانال**، تنظیم/حذف وب‌هوک با یک کلیک، تیونینگ ارسال |
@@ -255,7 +255,7 @@ This project ships a **working Telegram bot + full admin panel** running togethe
 
 1. **Automatic user tracking:** a user's first message stores their name, username, join date, language and last activity in KV — they instantly appear in the panel.
 2. **Truly bilingual:** each user picks their language via `/lang`; every message afterwards respects it. Default language is configurable from the panel.
-3. **Fully editable menu:** welcome/help texts, main keyboard and inline buttons (URL or callback) are all edited from the panel and go live **without redeploying**.
+3. **Fully editable menu:** welcome/help texts and inline buttons (URL, callback, submenu, popup) are edited from the panel and go live **without redeploying**; each button’s place is set by its **row and column** and moved with arrows.
 4. **Banning:** banned users are silently ignored (no replies, excluded from broadcasts) with the ban reason recorded.
 5. **Smart broadcasts:** rate-limited (~25 msg/s, tunable) batch sending with live progress, pause/resume, and automatic detection of users who blocked the bot (403 → flagged and skipped afterwards).
 6. **Direct messages:** send an HTML/Markdown message to any individual user from the panel.
@@ -287,7 +287,7 @@ Webhook accepted only with the secret `X-Telegram-Bot-Api-Secret-Token` header �
 | 📢 Message / Poll / Photo sending | Text + HTML/MarkdownV2 + URL buttons to **everyone, active users, specific users or a channel/group**; tunable rate limiting, live progress |
 | 📊 Interactive polls | Question + 2–10 options with inline buttons — **counts and text bars update live** on every vote, vote changing, refresh button, results in the panel |
 | 🖼 Photo with reactions | Photo (direct URL) with caption + **👍 like / 👎 dislike** buttons, live counters, toggleable votes |
-| ⌨️ Multi-level menu builder | Texts (FA/EN), main keyboard, inline buttons of 4 types (**URL, callback, submenu, text popup**) + **nested multi-level submenus** with automatic back buttons + **clickable live simulator** and real preview |
+| ⌨️ Multi-level menu builder | Texts (FA/EN); inline buttons of 4 types (**URL, callback, submenu, text popup**) + **nested multi-level submenus** with a **dedicated button editor per submenu** + exact **row & column placement** with arrow controls + **clickable live simulator** and real preview |
 | 🛡 Two-way support inbox | Users message via `/support` → lands in the panel (unread badge) → admin’s reply is delivered in their Telegram; ticket closing |
 | 🔒 Channel lock (force-subscribe) | The bot stays locked until the user joins your channel; detection via `getChatMember` (15-min cache), “I joined” button, admins exempt |
 | ⚙️ Settings | Bot token (masked), admin IDs, default language, **channel lock**, one-click webhook management |

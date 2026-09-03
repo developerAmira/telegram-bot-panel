@@ -149,9 +149,6 @@ export function withMenuDefaults(menu = {}) {
       fa: menu?.help?.fa ?? DEFAULT_MENU.help.fa,
       en: menu?.help?.en ?? DEFAULT_MENU.help.en,
     },
-    mainKeyboard: Array.isArray(menu?.mainKeyboard) && menu.mainKeyboard.length
-      ? menu.mainKeyboard
-      : deepClone(DEFAULT_MENU.mainKeyboard),
     inlineButtons: Array.isArray(menu?.inlineButtons) && menu.inlineButtons.length
       ? menu.inlineButtons
       : deepClone(DEFAULT_MENU.inlineButtons),

@@ -23,7 +23,6 @@ const BOT_T = {
     unknown: '🤔 متوجه نشدم. برای دیدن راهنما /help را بزنید.',
     langSet: '✅ زبان به فارسی تغییر کرد.',
     yourId: '🆔 آیدی عددی شما:',
-    kbHint: '⬇️ منوی اصلی فعال شد',
     pong: '🏓 پونگ! ربات فعال است.',
     lock: '🔒 برای استفاده از ربات، ابتدا در کانال ما عضو شوید:',
     lockOk: '✅ عضویت تایید شد! ربات برای شما فعال شد. /start را بزنید.',
@@ -49,7 +48,6 @@ const BOT_T = {
     unknown: "🤔 I didn't understand. Send /help for usage.",
     langSet: '✅ Language changed to English.',
     yourId: '🆔 Your numeric ID:',
-    kbHint: '⬇️ Main menu is now active',
     pong: '🏓 Pong! The bot is alive.',
     lock: '🔒 To use this bot, please join our channel first:',
     lockOk: '✅ Membership confirmed! The bot is now active for you. Send /start.',
@@ -106,14 +104,6 @@ export function renderTpl(text = '', user = {}) {
     .replace(/\{name\}/g, user.firstName || '')
     .replace(/\{username\}/g, user.username ? `@${user.username}` : '')
     .replace(/\{id\}/g, String(user.id || ''));
-}
-
-export function mainKeyboardMarkup(menu) {
-  return {
-    keyboard: menu.mainKeyboard.map((row) => row.map((t) => ({ text: t }))),
-    resize_keyboard: true,
-    is_persistent: true,
-  };
 }
 
 // تبدیل دکمه‌های پنل به مارک‌آپ تلگرام + دکمه بازگشت اختیاری
@@ -332,7 +322,6 @@ async function onMessage(env, msg) {
       }
       case '/help':
         return await sendToUser(token, chatId, renderTpl(menu.help[lang] || menu.help.fa, user), {
-          reply_markup: mainKeyboardMarkup(menu),
           disable_web_page_preview: true,
         });
       case '/lang':
@@ -340,42 +329,36 @@ async function onMessage(env, msg) {
       case '/id':
         return await sendToUser(token, chatId, `${T.yourId} <code>${user.id}</code>`, {
           parse_mode: 'HTML',
-          reply_markup: mainKeyboardMarkup(menu),
         });
       case '/ping':
         return await sendToUser(token, chatId, T.pong);
       case '/support': {
         user.supportOpen = true;
         await putUser(env, user);
-        const t = await getTicket(env, user.id);
-        return sendToUser(token, chatId, T.supportIntro, { reply_markup: mainKeyboardMarkup(menu) })
-          .then(() => { if (!t) return; }); // تیکت قبلی هم هست — مشکلی نیست
+        await getTicket(env, user.id); // تیکت قبلی هم هست — مشکلی نیست
+        return sendToUser(token, chatId, T.supportIntro);
       }
       case '/end': {
         if (user.supportOpen) {
           user.supportOpen = false;
           await putUser(env, user);
         }
-        return sendToUser(token, chatId, T.supportClosed, { reply_markup: mainKeyboardMarkup(menu) });
+        return sendToUser(token, chatId, T.supportClosed);
       }
       default:
-        return await sendToUser(token, chatId, T.unknown, { reply_markup: mainKeyboardMarkup(menu) });
+        return await sendToUser(token, chatId, T.unknown);
     }
   }
 
-  return await sendToUser(token, chatId, T.unknown, { reply_markup: mainKeyboardMarkup(menu) });
+  return await sendToUser(token, chatId, T.unknown);
 }
 
 export async function sendStart(token, chatId, user, menu, lang) {
-  const T = BOT_T[lang] || BOT_T.fa;
   const welcome = renderTpl(menu.welcome[lang] || menu.welcome.fa, user);
   await sendToUser(token, chatId, welcome, {
     reply_markup: inlineMarkup(menu),
     disable_web_page_preview: true,
   });
-  if (menu.mainKeyboard.length) {
-    await sendToUser(token, chatId, T.kbHint, { reply_markup: mainKeyboardMarkup(menu) });
-  }
 }
 
 function langKeyboard() {
@@ -494,7 +477,7 @@ async function onCallback(env, cb) {
   if (data === 'support:open') {
     user.supportOpen = true;
     await putUser(env, user);
-    await sendToUser(token, chatId, T.supportIntro, { reply_markup: mainKeyboardMarkup(menu) });
+    await sendToUser(token, chatId, T.supportIntro);
     return answer();
   }
 

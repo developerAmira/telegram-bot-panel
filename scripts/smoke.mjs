@@ -202,7 +202,6 @@ console.log('\n── 8) زیرمنوها و دکمه‌های چندلایه �
   let r = await json(await call('PUT', '/api/menu', { token: TOKEN, body: {
     welcome: { fa: 'سلام {name}', en: 'Hi {name}' },
     help: { fa: 'راهنما', en: 'Help' },
-    mainKeyboard: [['/start', '/help'], ['/support']],
     inlineButtons: [
       [{ text: 'فروشگاه', type: 'submenu', value: 'shop' }],
       [{ text: 'پاپ‌آپ', type: 'text', value: 'متن پاپ‌آپ تست' }],
@@ -220,6 +219,7 @@ console.log('\n── 8) زیرمنوها و دکمه‌های چندلایه �
   } }));
   ok('PUT /menu با زیرمنوهای چندلایه', r.status === 200);
   const menu = r.body.data.menu;
+  ok('کیبورد ساده (mainKeyboard) حذف شده است', !('mainKeyboard' in menu) || menu.mainKeyboard === undefined);
   ok('زیرمنوها ذخیره شدند', menu.submenus.shop && menu.submenus.shop2);
   ok('دکمه submenu نگه داشته شد', menu.inlineButtons[0][0].type === 'submenu');
   ok('دکمه text نگه داشته شد', menu.inlineButtons[1][0].type === 'text');

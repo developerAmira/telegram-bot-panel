@@ -93,6 +93,10 @@
       subHint: 'دکمه‌های نوع «زیرمنو» این صفحه را باز می‌کنند. دکمه «بازگشت» خودکار است و زیرمنوها می‌توانند به هم لینک شوند (چندلایه).',
       typeSubmenu: 'زیرمنو', typeText: 'پاپ‌آپ متن', valSubmenu: 'انتخاب زیرمنو', valText: 'متن پاپ‌آپ (تا ۲۰۰ کاراکتر)',
       backToMain: '✍️ دکمه‌های صفحه اصلی', subDelConfirm: 'این زیرمنو حذف شود؟ دکمه‌هایی که به آن لینک هستند هم پاک می‌شوند.',
+      rowLbl: 'ردیف', colLbl: 'جایگاه در ردیف (شماره ستون)', newRowOpt: '➕ ردیف جدید',
+      addBtnTitle: 'افزودن دکمه شیشه‌ای', btnsCount: 'دکمه', pageBtns: 'دکمه‌های این صفحه', backToList: 'بازگشت به فهرست زیرمنوها',
+      endOfRow: 'آخر ردیف', posHint: 'ستون ۱ = اولین جایگاه ردیف؛ خالی بگذارید تا در انتهای ردیف اضافه شود (حداکثر ۱۰ ردیف و ۸ دکمه در هر ردیف)',
+      moveL: 'یک جای به عقب', moveR: 'یک جای به جلو', moveU: 'انتقال به ردیف بالاتر', moveD: 'انتقال به ردیف پایین‌تر',
       simAlert: 'پاپ‌آپ', channelLock: 'قفل کانال (عضویت اجباری)', chEnable: 'فعال‌سازی — کاربر تا عضو کانال نشود ربات فعال نمی‌شود',
       chId: 'آیدی کانال — مثلاً @mychannel یا -1001234567890', chUrl: 'لینک دعوت سفارشی (اختیاری)',
       chHint: '⚠️ ربات باید ادمین کانال باشد تا عضویت را تشخیص دهد. ادمین‌های ربات از قفل معاف‌اند.',
@@ -141,10 +145,9 @@
       noTargets: 'کاربر هدفی یافت نشد',
       // menu
       menuHint: 'پیکربندی پیام‌ها، کیبورد اصلی و دکمه‌های شیشه‌ای ربات', welcomeTab: 'پیام خوش‌آمد',
-      keyboardTab: 'کیبورد اصلی', inlineTab: 'دکمه‌های شیشه‌ای',
+      inlineTab: 'دکمه‌های شیشه‌ای',
       welcomeFa: 'متن فارسی (/start)', welcomeEn: 'متن انگلیسی (/start)', helpFa: 'راهنمای فارسی (/help)', helpEn: 'راهنمای انگلیسی (/help)',
       tplHint: 'متغیرها: {name} نام، {username} یوزرنیم، {id} آیدی',
-      addRow: 'افزودن ردیف', kbRowHint: 'دکمه‌های هر ردیف را با کاما (,) جدا کنید',
       btnType: 'نوع', typeUrl: 'لینک', typeCallback: 'کال‌بک', value: 'مقدار', valueUrl: 'https://…', valueCb: 'مثلاً my:action (حداکثر ۶۴ بایت)',
       simulator: 'شبیه‌ساز ربات', simHint: 'رفتار ربات را با پیکربندی فعلی تست کنید', sendTest: 'ارسال پیش‌نمایش واقعی',
       chatIdPh: 'آیدی عددی چت (مثلاً خودتان)', testSent: 'پیش‌نمایش ارسال شد', resetDefaults: 'بازنشانی به پیش‌فرض',
@@ -181,6 +184,10 @@
       subHint: 'Buttons of type “submenu” open this page. A back button is added automatically and submenus can link to each other (multi-level).',
       typeSubmenu: 'Submenu', typeText: 'Text popup', valSubmenu: 'Choose submenu', valText: 'Popup text (up to 200 chars)',
       backToMain: '✍️ Main-page buttons', subDelConfirm: 'Delete this submenu? Buttons linking to it will be removed too.',
+      rowLbl: 'Row', colLbl: 'Position in row (column #)', newRowOpt: '➕ New row',
+      addBtnTitle: 'Add inline button', btnsCount: 'buttons', pageBtns: 'Buttons of this page', backToList: 'Back to submenu list',
+      endOfRow: 'End of row', posHint: 'Column 1 = first slot of the row; leave empty to append at the end (max 10 rows, 8 buttons per row)',
+      moveL: 'Move back one slot', moveR: 'Move forward one slot', moveU: 'Move to the row above', moveD: 'Move to the row below',
       simAlert: 'Popup', channelLock: 'Channel lock (force-subscribe)', chEnable: 'Enable — the bot stays locked until the user joins',
       chId: 'Channel ID — e.g. @mychannel or -1001234567890', chUrl: 'Custom invite link (optional)',
       chHint: '⚠️ The bot must be an admin of the channel to detect membership. Bot admins are exempt.',
@@ -222,10 +229,9 @@
       createdAt: 'Created', chars: 'chars', targetHint: 'Banned users and users who blocked the bot are excluded automatically',
       noTargets: 'No target users found',
       menuHint: 'Configure bot messages, main keyboard and inline buttons', welcomeTab: 'Welcome message',
-      keyboardTab: 'Main keyboard', inlineTab: 'Inline buttons',
+      inlineTab: 'Inline buttons',
       welcomeFa: 'Persian text (/start)', welcomeEn: 'English text (/start)', helpFa: 'Persian help (/help)', helpEn: 'English help (/help)',
       tplHint: 'Variables: {name}, {username}, {id}',
-      addRow: 'Add row', kbRowHint: 'Separate buttons of each row with commas',
       btnType: 'Type', typeUrl: 'URL', typeCallback: 'Callback', value: 'Value', valueUrl: 'https://…', valueCb: 'e.g. my:action (max 64 bytes)',
       simulator: 'Bot simulator', simHint: 'Test the bot behavior with current configuration', sendTest: 'Send real preview',
       chatIdPh: 'Numeric chat ID (e.g. yours)', testSent: 'Preview sent', resetDefaults: 'Reset to defaults',
@@ -603,8 +609,8 @@
   /* ═══════ PART 2: views ▸ actions ▸ router ▸ boot (v2 — نظرسنجی/عکس/پشتیبانی/زیرمنو) ═══════ */
 
   const SIM_T = {
-    fa: { kbHint: '⬇️ منوی اصلی فعال شد', unknown: '🤔 متوجه نشدم. برای راهنما /help را بزنید.', chooseLang: '🌍 زبان خود را انتخاب کنید:', yourId: '🆔 آیدی عددی شما: ۵۵۵۰۰۱۲۳۴', pong: '🏓 پونگ! ربات فعال است.', online: 'آنلاین', bot: 'ربات شما', supIntro: '🛡 در حالت گفتگو با پشتیبانی هستید. پیام خود را بنویسید.' },
-    en: { kbHint: '⬇️ Main menu is now active', unknown: "🤔 I didn't understand. Send /help for usage.", chooseLang: '🌍 Please choose your language:', yourId: '🆔 Your numeric ID: 555001234', pong: '🏓 Pong! The bot is alive.', online: 'online', bot: 'Your Bot', supIntro: '🛡 You are chatting with support. Send your message.' },
+    fa: { unknown: '🤔 متوجه نشدم. برای راهنما /help را بزنید.', chooseLang: '🌍 زبان خود را انتخاب کنید:', yourId: '🆔 آیدی عددی شما: ۵۵۵۰۰۱۲۳۴', pong: '🏓 پونگ! ربات فعال است.', online: 'آنلاین', bot: 'ربات شما', supIntro: '🛡 در حالت گفتگو با پشتیبانی هستید. پیام خود را بنویسید.' },
+    en: { unknown: "🤔 I didn't understand. Send /help for usage.", chooseLang: '🌍 Please choose your language:', yourId: '🆔 Your numeric ID: 555001234', pong: '🏓 Pong! The bot is alive.', online: 'online', bot: 'Your Bot', supIntro: '🛡 You are chatting with support. Send your message.' },
   };
 
   const loadingRow = (cols) =>
@@ -1220,8 +1226,11 @@
     } catch (e) { toast(e.message, 'error'); }
   }
 
-  // ═══════════════════════ منو، زیرمنوها و شبیه‌ساز ═══════════════════════
+
+  // ═══════════════════════ منو، زیرمنوها، ویرایشگر دکمه‌ها و شبیه‌ساز ═══════════════════════
   // دکمه‌های شیشه‌ای ۴ نوع دارند: url | callback | submenu | text
+  // هر صفحه (اصلی یا زیرمنو) یک ویرایشگر اختصاصی «جایگاه‌دار» دارد:
+  // موقعیت هر دکمه = ردیف + ستون؛ افزودن با انتخاب ردیف/ستون، جابه‌جایی با فلش‌ها
   const BTN_TYPES = [
     ['url', '🔗 ' + t('typeUrl')],
     ['callback', '⚡ ' + t('typeCallback')],
@@ -1232,11 +1241,13 @@
   // آرایه دکمه‌های در حال ویرایش (روت یا زیرمنوی فعال)
   function ctxButtons() {
     if (!MU.menu) return [];
-    return MU.sub ? ((MU.menu.submenus[MU.sub] || {}).buttons = MU.menu.submenus[MU.sub].buttons || []) : MU.menu.inlineButtons;
-  }
-  function setCtxButtons(rows) {
-    if (MU.sub) MU.menu.submenus[MU.sub].buttons = rows;
-    else MU.menu.inlineButtons = rows;
+    if (MU.sub) {
+      const sm = MU.menu.submenus[MU.sub] || (MU.menu.submenus[MU.sub] = { title: '', text: '', buttons: [] });
+      if (!Array.isArray(sm.buttons)) sm.buttons = [];
+      return sm.buttons;
+    }
+    if (!Array.isArray(MU.menu.inlineButtons)) MU.menu.inlineButtons = [];
+    return MU.menu.inlineButtons;
   }
 
   function renderMenu() {
@@ -1285,7 +1296,7 @@
     } catch (e) { toast(e.message, 'error'); }
   }
 
-  // ورودی مقدار دکمه بر اساس نوع (برای submenu یک select از زیرمنوها)
+  // ورودی مقدار دکمه بر اساس نوع (در ویرایشگر؛ برای submenu یک select از زیرمنوها)
   function btnValueEl(b) {
     if (b.type === 'submenu') {
       const opts = Object.entries(MU.menu.submenus || {})
@@ -1298,31 +1309,115 @@
     return '<input dir="ltr" class="ib-v ' + CLS.input + ' !py-2 !bg-white dark:!bg-slate-800 col-span-2 sm:col-span-1" placeholder="' + ph + '" value="' + esc(b.value) + '">';
   }
 
+  // ═══ ویرایشگر جایگاه‌دار دکمه‌های یک صفحه (اصلی یا زیرمنو) ═══
+  // هر دکمه: کارت با فیلدها + فلش‌های جابه‌جایی (◀▶ داخل ردیف، ▲▼ بین ردیف‌ها) + حذف
+  function renderBtnEditor() {
+    const host = $('btn-editor');
+    if (!host || !MU.menu) return;
+    const rows = ctxButtons();
+
+    let inner = rows.length
+      ? rows.map((row, ri) =>
+          '<div class="ib-row rounded-xl border border-slate-200 dark:border-slate-700 p-3 mb-3" data-r="' + ri + '">' +
+          '<div class="flex items-center justify-between mb-2.5">' +
+          '<span class="text-[11px] font-bold text-slate-400">' + t('rowLbl') + ' ' + fmtNum(ri + 1) + ' · ' + fmtNum(row.length) + ' ' + t('btnsCount') + '</span>' +
+          (row.length >= 8 ? '<span class="text-[10px] text-amber-500">MAX 8</span>' : '') +
+          '</div>' +
+          '<div class="space-y-2">' + row.map((b, bi) => btnCard(b, ri, bi, row.length, rows.length)).join('') + '</div></div>'
+        ).join('')
+      : '<p class="text-xs text-slate-400 mb-3">' + t('none') + '</p>';
+
+    inner += '<button data-act="btnAddOpen" class="' + CLS.btnP + ' text-xs !py-2"><i data-lucide="plus" class="w-3.5 h-3.5"></i>' + t('addBtnTitle') + '</button>' +
+      '<p class="text-[11px] text-slate-400 mt-2.5">' + t('posHint') + '</p>';
+    host.innerHTML = inner;
+    refreshIcons();
+  }
+
+  function btnCard(b, ri, bi, rowLen, rowsLen) {
+    const mv = (dir, icon, key, dis) =>
+      '<button data-act="btnMove" data-r="' + ri + '" data-b="' + bi + '" data-dir="' + dir + '" title="' + t(key) + '" class="' + CLS.iconBtn + ' !p-1.5' + (dis ? ' opacity-25 pointer-events-none' : '') + '"><i data-lucide="' + icon + '" class="w-3.5 h-3.5"></i></button>';
+    return '<div class="ib-card p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 grid grid-cols-[1fr_auto] sm:grid-cols-[minmax(0,1fr)_8rem_minmax(0,1fr)_auto] gap-2 items-center" data-b="' + bi + '">' +
+      '<input class="ib-t ' + CLS.input + ' !py-2 !bg-white dark:!bg-slate-800" placeholder="' + t('btnText') + '" value="' + esc(b.text) + '">' +
+      '<select class="ib-type ' + CLS.input + ' !py-2 !bg-white dark:!bg-slate-800" dir="ltr">' +
+      BTN_TYPES.map(([v, lbl]) => '<option value="' + v + '"' + (b.type === v ? ' selected' : '') + '>' + lbl + '</option>').join('') + '</select>' +
+      btnValueEl(b) +
+      '<div class="flex items-center justify-end gap-0.5 col-span-2 sm:col-span-1">' +
+      mv('u', 'chevron-up', 'moveU', ri === 0) +
+      mv('l', 'chevron-left', 'moveL', bi === 0) +
+      mv('r', 'chevron-right', 'moveR', bi === rowLen - 1) +
+      mv('d', 'chevron-down', 'moveD', ri === rowsLen - 1) +
+      '<button data-act="ibDelBtn" data-r="' + ri + '" data-b="' + bi + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>' +
+      '</div></div>';
+  }
+
+  // ═══ مودال افزودن دکمه با انتخاب ردیف و ستون ═══
+  function modalValueEl(type) {
+    if (type === 'submenu') {
+      const ids = Object.entries(MU.menu.submenus || {}).filter(([id]) => id !== MU.sub);
+      return '<select id="bm-value" class="' + CLS.input + '" dir="ltr">' +
+        (ids.map(([id, sm]) => '<option value="' + esc(id) + '">' + esc(sm.title || id) + ' (' + esc(id) + ')</option>').join('') ||
+          '<option value="">' + t('valSubmenu') + '</option>') + '</select>';
+    }
+    const ph = type === 'url' ? t('valueUrl') : type === 'text' ? t('valText') : t('valueCb');
+    return '<input id="bm-value" dir="ltr" class="' + CLS.input + '" placeholder="' + ph + '">';
+  }
+
+  function openBtnModal() {
+    syncMenuSafe();
+    const rows = ctxButtons();
+    const rowOpts = rows.map((r, i) =>
+        '<option value="' + i + '">' + t('rowLbl') + ' ' + fmtNum(i + 1) + ' (' + fmtNum(r.length) + ' ' + t('btnsCount') + ')</option>').join('') +
+      '<option value="new">' + t('newRowOpt') + '</option>';
+    openModal(
+      '<div class="p-6">' +
+      '<h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-brand-500"></i>' + t('addBtnTitle') + '</h3>' +
+      '<div class="space-y-3">' +
+      '<div><label class="' + CLS.label + '">' + t('btnText') + '</label>' +
+      '<input id="bm-text" maxlength="64" class="' + CLS.input + '"></div>' +
+      '<div><label class="' + CLS.label + '">' + t('btnType') + '</label>' +
+      '<select id="bm-type" class="' + CLS.input + '" dir="ltr">' +
+      BTN_TYPES.map(([v, lbl]) => '<option value="' + v + '">' + lbl + '</option>').join('') + '</select></div>' +
+      '<div><label class="' + CLS.label + '">' + t('value') + '</label>' +
+      '<div id="bm-value-box">' + modalValueEl('url') + '</div></div>' +
+      '<div class="grid grid-cols-2 gap-3">' +
+      '<div><label class="' + CLS.label + '">' + t('rowLbl') + '</label>' +
+      '<select id="bm-row" class="' + CLS.input + '">' + rowOpts + '</select></div>' +
+      '<div><label class="' + CLS.label + '">' + t('colLbl') + '</label>' +
+      '<input id="bm-col" type="number" min="1" class="' + CLS.input + '" placeholder="⟵ ' + t('endOfRow') + '"></div></div>' +
+      '</div>' +
+      '<p class="text-[11px] text-slate-400 mt-3">' + t('posHint') + '</p>' +
+      '<div class="flex justify-end gap-2 mt-5">' +
+      '<button data-act="modalClose" class="' + CLS.btnS + '">' + t('cancel') + '</button>' +
+      '<button data-act="btnModalAdd" class="' + CLS.btnP + '"><i data-lucide="plus" class="w-4 h-4"></i>' + t('addBtn') + '</button></div></div>'
+    );
+  }
+
   function renderMenuEditor() {
     const host = $('menu-editor');
     if (!host || !MU.menu) return;
     const m = MU.menu;
 
-    // ── حالت ویرایش زیرمنو ──
-    if (MU.tab === 'inline' && MU.sub) {
+    // ── ویرایشگر اختصاصی زیرمنو (بخش جدا برای دکمه‌های هر زیرمنو) ──
+    if (MU.sub) {
       const sm = m.submenus[MU.sub] || { title: '', text: '', buttons: [] };
       host.innerHTML =
         '<div class="flex items-center justify-between mb-4">' +
-        '<button data-act="subBack" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">← ' + t('backToMain') + '</button>' +
+        '<button data-act="subBack" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">← ' + t('backToList') + '</button>' +
         '<button data-act="subDel" data-id="' + esc(MU.sub) + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400" title="' + t('remove') + '"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>' +
         '<span class="' + CLS.chip + ' bg-brand-500/10 text-brand-600 dark:text-brand-400 mb-3 inline-flex">📂 ' + t('subEdit') + ' — <span dir="ltr">' + esc(MU.sub) + '</span></span>' +
         '<div class="grid sm:grid-cols-2 gap-4 mt-3">' +
         '<div><label class="' + CLS.label + '">' + t('subTitle') + '</label><input id="sm-title" class="' + CLS.input + '" maxlength="64" value="' + esc(sm.title) + '"></div>' +
         '<div><label class="' + CLS.label + '">' + t('subText') + '</label><input id="sm-text" class="' + CLS.input + '" value="' + esc(sm.text) + '"></div></div>' +
-        '<div class="mt-4"><div id="ib-rows" class="space-y-3"></div>' +
-        '<button data-act="ibAddRow" class="' + CLS.btnS + ' mt-3 text-xs !py-2"><i data-lucide="plus" class="w-3.5 h-3.5"></i>' + t('addRow') + '</button></div>' +
+        '<h4 class="text-xs font-bold uppercase tracking-wide text-slate-500 mt-5 mb-2">' + t('pageBtns') + '</h4>' +
+        '<div id="btn-editor"></div>' +
         '<p class="text-[11px] text-slate-400 mt-3">' + t('subHint') + '</p>';
-      renderIbRows();
+      renderBtnEditor();
       refreshIcons();
       return;
     }
 
-    const tabs = [['welcome', 'message-circle'], ['keyboard', 'keyboard'], ['inline', 'link-2']];
+    // ── تب‌ها: پیام‌ها | دکمه‌های اصلی | زیرمنوها ──
+    const tabs = [['welcome', 'message-circle'], ['inline', 'link-2'], ['submenus', 'folder-tree']];
     let body = '';
     if (MU.tab === 'welcome') {
       const ta = (id, label, val) =>
@@ -1332,32 +1427,21 @@
         '<div class="grid sm:grid-cols-2 gap-4">' + ta('wm-fa', t('welcomeFa'), m.welcome.fa) + ta('wm-en', t('welcomeEn'), m.welcome.en) + '</div>' +
         '<div class="grid sm:grid-cols-2 gap-4 mt-4">' + ta('hp-fa', t('helpFa'), m.help.fa) + ta('hp-en', t('helpEn'), m.help.en) + '</div>' +
         '<p class="text-[11px] text-slate-400 mt-3 flex items-center gap-1.5"><i data-lucide="braces" class="w-3.5 h-3.5"></i>' + t('tplHint') + '</p>';
-    } else if (MU.tab === 'keyboard') {
-      body =
-        '<p class="text-[11px] text-slate-400 mb-3">' + t('kbRowHint') + '</p>' +
-        '<div id="kb-rows" class="space-y-2">' +
-        m.mainKeyboard.map((row, ri) =>
-          '<div class="flex gap-2" data-r="' + ri + '">' +
-          '<input class="kb-row-in ' + CLS.input + '" value="' + esc(row.join(', ')) + '">' +
-          '<button data-act="kbDelRow" data-r="' + ri + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400 shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>'
-        ).join('') + '</div>' +
-        '<button data-act="kbAddRow" class="' + CLS.btnS + ' mt-3 text-xs !py-2"><i data-lucide="plus" class="w-3.5 h-3.5"></i>' + t('addRow') + '</button>';
+    } else if (MU.tab === 'inline') {
+      body = '<h4 class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">' + t('pageBtns') + '</h4><div id="btn-editor"></div>';
     } else {
-      // دکمه‌های صفحه اصلی + لیست زیرمنوها
       const subs = Object.entries(m.submenus || {}).map(([id, sm]) =>
         '<div class="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2">' +
         '<span class="text-sm flex-1 truncate">📂 ' + esc(sm.title || id) + ' <span class="text-[10px] text-slate-400" dir="ltr">' + esc(id) + '</span></span>' +
-        '<span class="text-[10px] text-slate-400">' + fmtNum((sm.buttons || []).flat().length) + ' btn</span>' +
-        '<button data-act="subEditBtn" data-id="' + esc(id) + '" class="' + CLS.iconBtn + ' !p-1.5"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>' +
+        '<span class="text-[10px] text-slate-400">' + fmtNum((sm.buttons || []).flat().length) + ' ' + t('btnsCount') + '</span>' +
+        '<button data-act="subEditBtn" data-id="' + esc(id) + '" class="' + CLS.iconBtn + ' !p-1.5" title="' + t('subEdit') + '"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>' +
         '<button data-act="subDel" data-id="' + esc(id) + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>'
       ).join('');
       body =
-        '<div id="ib-rows" class="space-y-3"></div>' +
-        '<button data-act="ibAddRow" class="' + CLS.btnS + ' mt-3 text-xs !py-2"><i data-lucide="plus" class="w-3.5 h-3.5"></i>' + t('addRow') + '</button>' +
-        '<div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">' +
-        '<div class="flex items-center justify-between mb-3"><h4 class="text-xs font-bold text-slate-500 uppercase tracking-wide">' + t('submenus') + '</h4>' +
+        '<div class="flex items-center justify-between mb-3"><h4 class="text-xs font-bold uppercase tracking-wide text-slate-500">' + t('submenus') + '</h4>' +
         '<button data-act="subNew" class="' + CLS.btnS + ' !py-1.5 !px-3 text-xs"><i data-lucide="plus" class="w-3.5 h-3.5"></i>' + t('subNew') + '</button></div>' +
-        '<div class="space-y-2">' + (subs || '<p class="text-xs text-slate-400">' + t('none') + '</p>') + '</div></div>';
+        '<div class="space-y-2">' + (subs || '<p class="text-xs text-slate-400">' + t('none') + '</p>') + '</div>' +
+        '<p class="text-[11px] text-slate-400 mt-3">' + t('subHint') + '</p>';
     }
 
     host.innerHTML =
@@ -1365,32 +1449,10 @@
       tabs.map(([id, icon]) =>
         '<button data-act="menuTab" data-tab="' + id + '" class="flex-1 flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-bold transition ' +
         (MU.tab === id ? 'bg-white dark:bg-slate-900 shadow text-brand-600 dark:text-brand-400' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200') + '">' +
-        '<i data-lucide="' + icon + '" class="w-3.5 h-3.5"></i>' + t(id + 'Tab') + '</button>').join('') +
+        '<i data-lucide="' + icon + '" class="w-3.5 h-3.5"></i>' + t(id === 'welcome' ? 'welcomeTab' : id === 'inline' ? 'inlineTab' : 'submenus') + '</button>').join('') +
       '</div>' + body;
 
-    if (MU.tab === 'inline') renderIbRows();
-    refreshIcons();
-  }
-
-  function renderIbRows() {
-    const host = $('ib-rows');
-    if (!host || !MU.menu) return;
-    const rows = ctxButtons();
-    host.innerHTML = rows.map((row, ri) =>
-      '<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2.5" data-r="' + ri + '">' +
-      '<div class="flex items-center justify-between"><span class="text-xs font-bold text-slate-400">#' + (ri + 1) + '</span>' +
-      '<button data-act="ibDelRow" data-r="' + ri + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>' +
-      '<div class="space-y-2">' + row.map((b, bi) =>
-        '<div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_8rem_1fr] gap-2 items-center" data-b="' + bi + '">' +
-        '<input class="ib-t ' + CLS.input + ' !py-2 !bg-white dark:!bg-slate-800" placeholder="' + t('btnText') + '" value="' + esc(b.text) + '">' +
-        '<select class="ib-type ' + CLS.input + ' !py-2 !bg-white dark:!bg-slate-800" dir="ltr">' +
-        BTN_TYPES.map(([v, lbl]) => '<option value="' + v + '"' + (b.type === v ? ' selected' : '') + '>' + lbl + '</option>').join('') + '</select>' +
-        btnValueEl(b) +
-        '<button data-act="ibDelBtn" data-r="' + ri + '" data-b="' + bi + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>' +
-        '</div>').join('') + '</div>' +
-      '<button data-act="ibAddBtn" data-r="' + ri + '" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">+ ' + t('addBtn') + '</button>' +
-      '</div>'
-    ).join('');
+    if (MU.tab === 'inline') renderBtnEditor();
     refreshIcons();
   }
 
@@ -1398,28 +1460,26 @@
   function syncMenuDom() {
     if (!MU.menu) return;
     const m = MU.menu;
-    if (MU.tab === 'welcome') {
+    if (MU.tab === 'welcome' && !MU.sub) {
       m.welcome.fa = $('wm-fa').value;
       m.welcome.en = $('wm-en').value;
       m.help.fa = $('hp-fa').value;
       m.help.en = $('hp-en').value;
-    } else if (MU.tab === 'keyboard') {
-      m.mainKeyboard = [...document.querySelectorAll('.kb-row-in')]
-        .map((el) => el.value.split(/[,،]/).map((x) => x.trim()).filter(Boolean))
-        .filter((r) => r.length);
     } else if (MU.sub) {
       const sm = m.submenus[MU.sub];
       if ($('sm-title')) sm.title = $('sm-title').value;
       if ($('sm-text')) sm.text = $('sm-text').value;
-      sm.buttons = readIbRows();
-    } else {
+      if (document.querySelector('#btn-editor')) sm.buttons = readIbRows();
+    } else if (MU.tab === 'inline') {
       m.inlineButtons = readIbRows();
     }
   }
 
   function readIbRows() {
-    return [...document.querySelectorAll('#ib-rows > [data-r]')].map((rowEl) =>
-      [...rowEl.querySelectorAll('[data-b]')].map((bEl) => ({
+    const host = document.querySelector('#btn-editor');
+    if (!host) return [];
+    return [...host.querySelectorAll('.ib-row')].map((rowEl) =>
+      [...rowEl.querySelectorAll('.ib-card')].map((bEl) => ({
         text: bEl.querySelector('.ib-t').value,
         type: bEl.querySelector('.ib-type').value,
         value: bEl.querySelector('.ib-v') ? bEl.querySelector('.ib-v').value : '',
@@ -1453,7 +1513,7 @@
   function simPills(buttons) {
     if (!buttons || !buttons.length) return '';
     const rows = buttons.map((row) =>
-      '<div class="flex gap-1.5 justify-center flex-wrap mt-2">' + row.map((b, i) =>
+      '<div class="flex gap-1.5 justify-center flex-wrap mt-2">' + row.map((b) =>
         '<button data-act="simBtn" data-type="' + esc(b.type) + '" data-value="' + esc(b.value) + '" data-text="' + esc(b.text) + '" class="rounded-lg bg-[#2b5278] hover:bg-[#3a6a9c] text-white text-[11px] font-medium px-3 py-1.5 transition">' + esc(b.text || b) + '</button>').join('') + '</div>');
     return '<div class="mt-1">' + rows.join('') + '</div>';
   }
@@ -1468,8 +1528,7 @@
     } else {
       const sm = (m.submenus || {})[pageId];
       if (!sm) return;
-      const rows = (sm.buttons || []).map((row) => row);
-      simBot('📂 <b>' + esc(sm.title) + '</b>\n' + esc(sm.text) + simPills(rows) +
+      simBot('📂 <b>' + esc(sm.title) + '</b>\n' + esc(sm.text) + simPills(sm.buttons || []) +
         '<div class="flex gap-1.5 justify-center flex-wrap mt-2"><button data-act="simBtn" data-type="submenu" data-value="root" class="rounded-lg bg-slate-600/60 hover:bg-slate-500 text-white text-[11px] px-3 py-1.5 transition">⬅️ ' + (S.lang === 'fa' ? 'بازگشت' : 'Back') + '</button></div>');
     }
   }
@@ -1478,7 +1537,6 @@
     if (d.type === 'submenu') return simShowPage(d.value === 'root' ? 'root' : d.value);
     if (d.type === 'text') return simAlert(d.value);
     if (d.type === 'url') return simAlert('🔗 ' + d.value);
-    // callback های شناخته‌شده
     if (d.value === 'support:open') return simBot('🛡 ' + SIM_T[S.lang].supIntro);
     if (d.value === 'setlang:menu') return simBot(SIM_T[S.lang].chooseLang + simPills([[{ text: 'فارسی 🇮🇷', type: 'text', value: 'فارسی انتخاب شد' }, { text: 'English 🇬🇧', type: 'text', value: 'English selected' }]]));
     simBot('⚡ callback: <span dir="ltr">' + esc(d.value) + '</span>');
@@ -1490,9 +1548,6 @@
     const m = MU.menu;
     if (cmd === '/start') {
       simShowPage('root');
-      setTimeout(() => simBot(st.kbHint +
-        '<div class="grid grid-cols-2 gap-1.5 mt-2">' + m.mainKeyboard.flat().slice(0, 8).map((x) =>
-          '<span class="text-center text-[11px] bg-slate-500/30 rounded-lg px-2 py-1.5">' + esc(x) + '</span>').join('') + '</div>'), 500);
     } else if (cmd === '/help') {
       simBot(esc(m.help[lang] || m.help.fa));
     } else if (cmd === '/lang') {
@@ -1507,7 +1562,6 @@
       simBot(st.unknown);
     }
   }
-
   // ═══════════════════════ تنظیمات ═══════════════════════
   function renderSettings() {
     $('view').innerHTML =
@@ -1718,12 +1772,49 @@
       try { await api('/menu', { method: 'PUT', body: MU.menu }); toast(t('saved'), 'success'); } catch (e) {}
       renderMenuEditor(); renderSim();
     },
-    kbAddRow: () => { syncMenuSafe(); MU.menu.mainKeyboard.push(['']); renderMenuEditor(); },
-    kbDelRow: (d) => { syncMenuSafe(); MU.menu.mainKeyboard.splice(+d.r, 1); renderMenuEditor(); },
-    ibAddRow: () => { syncMenuSafe(); ctxButtons().push([{ text: '', type: 'url', value: '' }]); renderMenuEditor(); },
-    ibDelRow: (d) => { syncMenuSafe(); ctxButtons().splice(+d.r, 1); renderMenuEditor(); },
-    ibAddBtn: (d) => { syncMenuSafe(); ctxButtons()[+d.r].push({ text: '', type: 'url', value: '' }); renderMenuEditor(); },
-    ibDelBtn: (d) => { syncMenuSafe(); ctxButtons()[+d.r].splice(+d.b, 1); renderMenuEditor(); },
+    ibDelBtn: (d) => {
+      syncMenuSafe();
+      const rows = ctxButtons(); const row = rows[+d.r];
+      if (row) { row.splice(+d.b, 1); if (!row.length) rows.splice(+d.r, 1); }
+      renderMenuEditor();
+    },
+    btnAddOpen: () => openBtnModal(),
+    btnModalAdd: () => {
+      const type = $('bm-type').value;
+      const text = $('bm-text').value.trim();
+      const valueEl = $('bm-value');
+      const value = valueEl ? String(valueEl.value).trim() : '';
+      if (!text) return toast(t('invalidForm'), 'error');
+      if (type === 'url' && !/^https?:\/\//.test(value)) return toast(t('invalidForm'), 'error');
+      if (type === 'callback' && !(value.length >= 1 && value.length <= 64)) return toast(t('invalidForm'), 'error');
+      if (type === 'submenu' && !value) return toast(t('invalidForm'), 'error');
+      if (type === 'text' && !(value.length >= 1 && value.length <= 200)) return toast(t('invalidForm'), 'error');
+      syncMenuSafe();
+      const rows = ctxButtons();
+      if (rows.length >= 10) return toast(t('invalidForm'), 'error');
+      let ri;
+      if ($('bm-row').value === 'new') { rows.push([]); ri = rows.length - 1; }
+      else ri = Math.min(Math.max(+$('bm-row').value, 0), rows.length - 1);
+      if (rows[ri].length >= 8) return toast(t('invalidForm'), 'error');
+      let col = parseInt($('bm-col').value, 10);
+      if (!Number.isInteger(col) || col < 1) col = rows[ri].length + 1; // پیش‌فرض: آخر ردیف
+      col = Math.min(col, rows[ri].length + 1);
+      rows[ri].splice(col - 1, 0, { text, type, value });
+      closeModal();
+      renderMenuEditor();
+    },
+    btnMove: (d) => {
+      syncMenuSafe();
+      const rows = ctxButtons();
+      const r = +d.r, b = +d.b;
+      const row = rows[r];
+      if (!row || !row[b]) return;
+      if (d.dir === 'l' && b > 0) { const x = row[b - 1]; row[b - 1] = row[b]; row[b] = x; }
+      else if (d.dir === 'r' && b < row.length - 1) { const x = row[b + 1]; row[b + 1] = row[b]; row[b] = x; }
+      else if (d.dir === 'u' && r > 0) { const [x] = row.splice(b, 1); rows[r - 1].push(x); if (!row.length) rows.splice(r, 1); }
+      else if (d.dir === 'd' && r < rows.length - 1) { const [x] = row.splice(b, 1); rows[r + 1].push(x); if (!row.length) rows.splice(r, 1); }
+      renderMenuEditor();
+    },
 
     // زیرمنوها
     subNew: () => {
@@ -1736,8 +1827,8 @@
       MU.sub = id;
       renderMenuEditor();
     },
-    subEditBtn: (d) => { syncMenuSafe(); MU.sub = d.id; renderMenuEditor(); },
-    subBack: () => { syncMenuSafe(); MU.sub = null; renderMenuEditor(); },
+    subEditBtn: (d) => { syncMenuSafe(); MU.sub = d.id; MU.tab = 'submenus'; renderMenuEditor(); },
+    subBack: () => { syncMenuSafe(); MU.sub = null; MU.tab = 'submenus'; renderMenuEditor(); },
     subDel: async (d) => {
       if (!(await confirmDlg(t('subDelConfirm'), t('remove')))) return;
       syncMenuSafe();
@@ -1891,6 +1982,12 @@
       const u = $('tg-users'), c = $('tg-chat');
       if (u) u.classList.toggle('hidden', BC.target !== 'users');
       if (c) c.classList.toggle('hidden', BC.target !== 'chat');
+    }
+    // تغییر نوع در مودال «افزودن دکمه» → فیلد مقدار متناسب بازسازی می‌شود
+    if (x.id === 'bm-type') {
+      const vb = $('bm-value-box');
+      if (vb) vb.innerHTML = modalValueEl(x.value);
+      return;
     }
     // تغییر نوع دکمه → همگام‌سازی و رندر مجدد (برای سوییچ input/select مقدار)
     if (x.classList && x.classList.contains('ib-type')) {

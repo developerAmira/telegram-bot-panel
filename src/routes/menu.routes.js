@@ -71,17 +71,7 @@ function sanitizeMenu(input = {}) {
     en: clean(input?.help?.en, 3500) || DEFAULT_MENU.help.en,
   };
 
-  // کیبورد اصلی: حداکثر ۱۲ ردیف × ۸ دکمه
-  const mainKeyboard = [];
-  if (Array.isArray(input?.mainKeyboard)) {
-    for (const row of input.mainKeyboard.slice(0, 12)) {
-      if (!Array.isArray(row)) continue;
-      const texts = row.map((t) => clean(t, 48)).filter((t) => t.length >= 1);
-      if (texts.length) mainKeyboard.push(texts.slice(0, 8));
-    }
-  }
-
-  // دکمه‌های شیشه‌ای روت + زیرمنوها
+  // دکمه‌های شیشه‌ای روت + زیرمنوها (کیبورد ساده حذف شده است — همه‌چیز با دکمه شیشه‌ای)
   const inlineButtons = sanitizeButtons(input?.inlineButtons, validSubIds, { maxRows: 10 });
   const submenus = {};
   for (const id of validSubIds) {
@@ -95,11 +85,10 @@ function sanitizeMenu(input = {}) {
   }
 
   // fallback های پیش‌فرض
-  if (!mainKeyboard.length) mainKeyboard.push(...JSON.parse(JSON.stringify(DEFAULT_MENU.mainKeyboard)));
   if (!inlineButtons.length) inlineButtons.push(...JSON.parse(JSON.stringify(DEFAULT_MENU.inlineButtons)));
   if (!Object.keys(submenus).length) submenus.shop = JSON.parse(JSON.stringify(DEFAULT_MENU.submenus.shop));
 
-  return { welcome, help, mainKeyboard, inlineButtons, submenus };
+  return { welcome, help, inlineButtons, submenus };
 }
 
 // ── خواندن منو ─────────────────────────────────────────────────────
