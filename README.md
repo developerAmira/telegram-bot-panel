@@ -1,212 +1,218 @@
-# 🤖 BotPanel — پنل مدیریت ربات تلگرام
+<div align="center">
 
-پنل مدیریت وب **دو زبانه (فارسی/انگلیسی)**، آماده پروداکشن، برای ربات تلگرام — کاملاً میزبانی‌شده روی **Cloudflare Workers** با پایگاه‌داده **Cloudflare KV** (بدون نیاز به سرور، بدون هزینه در پلن رایگان برای شروع).
+# 🤖 BotPanel
 
-![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020) ![KV](https://img.shields.io/badge/Storage-KV-blue) ![Hono](https://img.shields.io/badge/API-Hono-ff6a33) ![Tailwind](https://img.shields.io/badge/UI-Tailwind%20CSS-38bdf8)
+**پنل مدیریت ربات تلگرام | Telegram Bot Admin Panel**
+
+دو زبانه (فارسی/انگلیسی) · آماده پروداکشن · کاملاً Serverless
+Bilingual (FA/EN) · Production-ready · Fully serverless
+
+![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)
+![Cloudflare KV](https://img.shields.io/badge/Storage-KV_Namespace-0051C3?logo=cloudflare&logoColor=white)
+![Hono](https://img.shields.io/badge/API-Hono_Framework-ff6a33)
+![Tailwind CSS](https://img.shields.io/badge/UI-Tailwind_CSS-38bdf8?logo=tailwindcss&logoColor=white)
+![Languages](https://img.shields.io/badge/UI-%D9%81%D8%A7%8D_EN-green)
+
+**فارسی** · [English ↓](#-english)
+
+</div>
 
 ---
+
+<div dir="rtl" lang="fa">
+
+## 📖 معرفی
+
+پنل مدیریت وب **دو زبانه (فارسی/انگلیسی)** برای ربات تلگرام که **تماماً** روی زیرساخت Cloudflare اجرا می‌شود — بدون سرور، بدون دیتابیس خارجی و بدون هزینه در پلن رایگان برای شروع:
+
+- **بک‌اند:** Cloudflare Workers (سینتکس ES Modules + فریمورک Hono)
+- **پایگاه‌داده:** Cloudflare KV (نشست‌ها، تنظیمات، کاربران، ارسال همگانی)
+- **فرانت‌اند:** اپ تک‌صفحه‌ای (SPA) با Tailwind CSS + آیکون‌های Lucide + فونت وزیرمتن
+- **تلگرام:** وب‌هوک امن با هدر مخفی `secret_token` و پاسخ فوری ۲۰۰
 
 ## ✨ امکانات
 
 | بخش | توضیح |
 |---|---|
-| 🔐 **احراز هویت امن** | ورود با رمز عبور ذخیره‌شده در Wrangler Secrets، مقایسه timing-safe، نشست با توکن ۶۴ کاراکتری (فقط هش SHA-256 آن در KV ذخیره می‌شود)، محدودیت نرخ ورود (۵ تلاش / ۱۰ دقیقه به‌ازای IP) |
-| 📊 **داشبورد و وضعیت لحظه‌ای** | آمار کلی (کاربران، مسدودها، پیام‌ها، ارسال‌های همگانی)، نشانگر زنده ورکر با تأخیر و مرکز داده (`colo`) + پینگ خودکار هر ۳۰ ثانیه، وضعیت وب‌هوک تلگرام (آپدیت‌های در انتظار و آخرین خطا) |
-| 👥 **مدیریت کاربران** | لیست با صفحه‌بندی cursor بومی KV، جستجو (نام/یوزرنیم/آیدی)، مسدودسازی با دلیل، آزادسازی، ارسال پیام مستقیم، مشاهده جزئیات کامل |
-| 📢 **موتور ارسال همگانی** | متن + فرمت (HTML / MarkdownV2) + دکمه‌های URL، هدف‌گیری (همه / فعال ۷ روز / فعال ۳۰ روز)، معماری دسته‌ای (batch) با **Rate-Limit** قابل تنظیم، نوار پیشرفت زنده، توقف موقت/ادامه/توقف قطعی، تشخیص خودکار کاربرانی که ربات را بلاک کرده‌اند |
-| ⌨️ **سازنده منو و دکمه‌ها** | ویرایش پیام خوش‌آمد/راهنما (فا/EN) با متغیرهای `{name}` `{username}` `{id}`، کیبورد اصلی، دکمه‌های شیشه‌ای (URL/Callback)، **شبیه‌ساز زنده ربات** و ارسال پیش‌نمایش واقعی به چت |
-| ⚙️ **مدیریت تنظیمات** | توکن ربات (ماسک‌شده)، آیدی ادمین‌ها، زبان پیش‌فرض، تنظیم/حذف وب‌هوک با یک کلیک، تیونینگ ارسال همگانی، سوئیچ زبان پنل (RTL/LTR) و حالت تاریک/روشن |
+| 🔐 احراز هویت امن | رمز در Wrangler Secrets، مقایسه timing-safe، نشست ۷روزه (فقط هش SHA-256 در KV)، محدودیت نرخ ورود (۵ تلاش/۱۰ دقیقه/IP) |
+| 📊 داشبورد | آمار کلی، **نشانگر وضعیت لحظه‌ای ورکر** (تأخیر + مرکز داده + پینگ هر ۳۰ ثانیه)، وضعیت وب‌هوک تلگرام، کاربران اخیر |
+| 👥 مدیریت کاربران | لیست با صفحه‌بندی cursor بومی KV، جستجو، مسدود/آزادسازی با دلیل، ارسال پیام مستقیم، جزئیات کامل |
+| 📢 موتور ارسال همگانی | متن + HTML/MarkdownV2 + دکمه‌های URL، هدف‌گیری (همه / فعال ۷ روز / فعال ۳۰ روز)، **Rate-Limit** قابل تنظیم، پیشرفت زنده، توقف موقت/ادامه/قطعی، تشخیص خودکار بلاک‌کنندگان ربات |
+| ⌨️ سازنده منو | ویرایش پیام خوش‌آمد/راهنما (فا/EN) با متغیرهای `{name}` `{username}` `{id}`، کیبورد اصلی، دکمه‌های شیشه‌ای (URL/Callback)، **شبیه‌ساز زنده ربات** + ارسال پیش‌نمایش واقعی |
+| ⚙️ تنظیمات | توکن ربات (ماسک‌شده)، آیدی ادمین‌ها، زبان پیش‌فرض، تنظیم/حذف وب‌هوک با یک کلیک، تیونینگ ارسال همگانی |
+| 🌍 دو زبانه | سوئیچ کامل فا/EN با RTL/LTR، حالت تاریک/روشن، طراحی اول موبایل |
 
-ربات پایه هم دستورات `/start`، `/help`، `/lang`، `/id` و `/ping` را پیاده‌سازی کرده و ساختار منو کاملاً از پنل قابل کنترل است.
-
----
+ربات پایه دستورات `/start` · `/help` · `/lang` · `/id` · `/ping` را دارد و کل منوی آن از پنل کنترل می‌شود.
 
 ## 🏗️ معماری
 
 ```
-                        ┌──────────────────────────────────┐
-                        │        Cloudflare Edge           │
-   Telegram ── webhook ─►  Worker (Hono, ES Modules)       │
-   Admin    ── HTTPS ───►   ├─ POST /telegram/webhook      │
-                           │   └─ هدر مخفی secret_token   │
-                           │   └─ ctx.waitUntil(...)       │
-                           │  ├─ /api/*  (پنل، Bearer JWT- │
-                           │  │            like session)   │
-                           │  └─ /*  → SPA (Assets)        │
-                           │            │                  │
-                           │        BOT_KV (KV)             │
-                           │  settings, menu, stats,        │
-                           │  user:{id}, session:{hash},    │
-                           │  broadcast:{id}                │
-                           └──────────┬──────────────────────┘
-                                      │ Bot API (fetch)
-                                      ▼
-                               api.telegram.org
+تلگرام ──وب‌هوک──►  Cloudflare Worker (Hono)
+                    ├─ POST /telegram/webhook   (هدر مخفی + waitUntil)
+ادمین   ──HTTPS───► ├─ /api/*                  (Bearer session)
+                    └─ /*  →  SPA (Assets)
+                              │
+                        Cloudflare KV
+                 settings · menu · stats · user:{id}
+                 session:{hash} · broadcast:{id}
+                              │
+                              ▼ Bot API (fetch)
+                        api.telegram.org
 ```
 
-**چرا ارسال همگان دسته‌ای (tick) است؟** هر درخواست Worker در پلن رایگان به ~۵۰ subrequest محدود است. پنل هر بار یک «دسته» (پیش‌فرض ۲۵ پیام با فاصله ۴۰ms ≈ ۲۵ پیام/ثانیه، کمتر از سقف ~۳۰ تلگرام) می‌فرستد و جاب در KV ذخیره می‌شود؛ نتیجه: بدون محدودیت تعداد کاربر، قابل ازسرگیری و با پیشرفت زنده.
+**چرا ارسال همگانی «دسته‌ای» است؟** هر درخواست Worker به ~۵۰ subrequest محدود است؛ پنل هر بار یک دسته (پیش‌فرض ۲۵ پیام با فاصله ۴۰ms) می‌فرستد و جاب در KV ذخیره می‌شود → بدون سقف تعداد، قابل ازسرگیری، با پیشرفت زنده.
 
 ### ساختار پروژه
 
 ```
-telegram-admin-panel/
-├── wrangler.toml          # پیکربندی Worker + بایندینگ KV و Assets
-├── package.json
-├── .dev.vars              # محرمانه‌های توسعه لوکال (commit نمی‌شود)
-├── .dev.vars.example
+telegram-bot-panel/
+├── wrangler.toml        # پیکربندی Worker + بایندینگ KV و Assets
+├── .dev.vars.example    # نمونه محرمانه‌های توسعه لوکال
 ├── src/
-│   ├── index.js           # ورودی: مسیریابی وب‌هوک / API / SPA
-│   ├── kv.js              # لایه دسترسی به داده روی KV (طرح کلیدها)
-│   ├── auth.js            # نشست‌ها، timing-safe compare، Rate-limit ورود
-│   ├── telegram.js        # کلاینت Bot API + منطق وب‌هوک ربات
-│   └── routes/
-│       ├── auth.routes.js       # POST /api/auth/login|logout, GET session
-│       ├── dashboard.routes.js  # GET /api/dashboard/stats
-│       ├── users.routes.js      # GET/POST /api/users/...
-│       ├── broadcast.routes.js  # POST /api/broadcast + /tick + کنترل
-│       ├── menu.routes.js       # GET/PUT /api/menu + /preview
-│       └── settings.routes.js   # GET/PUT /api/settings + /webhook
-├── public/
-│   └── index.html         # SPA (Tailwind CDN + Lucide + Vazirmatn)
-└── scripts/
-    └── smoke.mjs          # تست دود: npm run smoke (بدون نیاز به wrangler)
+│   ├── index.js         # ورودی: وب‌هوک / API / SPA
+│   ├── kv.js            # لایه داده روی KV (طرح کلیدها + metadata)
+│   ├── auth.js          # نشست‌ها، مقایسه timing-safe، Rate-limit
+│   ├── telegram.js      # کلاینت Bot API + منطق ربات
+│   └── routes/          # auth · dashboard · users · broadcast · menu · settings
+├── public/index.html    # SPA کامل (Tailwind + Lucide + وزیرمتن)
+├── scripts/smoke.mjs    # تست دود (۲۹ تست)
+├── assets/              # نشان‌های سازنده
+└── DEPLOY.fa.md         # 🚀 راهنمای کامل صفر تا صد
 ```
 
----
-
-## 🚀 راه‌اندازی سریع (لوکال)
+## 🖥️ راه‌اندازی لوکال
 
 پیش‌نیاز: Node.js ≥ 18
 
 ```bash
+git clone https://github.com/developerAmira/telegram-bot-panel.git
+cd telegram-bot-panel
 npm install
 
-# محرمانه‌های لوکال را آماده کنید (رمز پنل = change-me-dev)
-cp .dev.vars.example .dev.vars
+cp .dev.vars.example .dev.vars    # رمز لوکال: change-me-dev
+npm run dev                       # → http://localhost:8787
 
-npm run dev            # → http://localhost:8787
+npm run smoke                     # اجرای ۲۹ تست خودکار
 ```
 
-تست‌ها:
+## ☁️ دیپلوی پروداکشن (خلاصه)
 
 ```bash
-npm run smoke          # ۲۹ تست API/وب‌هوک با KV درون‌حافظه‌ای
+npx wrangler login                                  # ۱) ورود به کلادفلر
+npx wrangler kv namespace create BOT_KV             # ۲) ساخت KV → id را در wrangler.toml بگذارید
+npx wrangler secret put ADMIN_PASSWORD              # ۳) رمز ورود پنل
+npx wrangler secret put WEBHOOK_SECRET              #    راز وب‌هوک (openssl rand -hex 32)
+npx wrangler secret put BOT_TOKEN                   #    توکن @BotFather (اختیاری)
+npm run deploy                                      # ۴) دیپلوی 🚀
 ```
+
+سپس در پنل وارد شوید ← **تنظیمات ← «تنظیم وب‌هوک»** ← در تلگرام `/start` بفرستید. تمام!
+
+📌 **راهنمای کامل قدم‌به‌قدم با عیب‌یابی:** [`DEPLOY.fa.md`](DEPLOY.fa.md)
+
+## 🔌 API (خلاصه)
+
+همه پاسخ‌ها `{ok,data}` / `{ok,error}` با احراز هویت `Authorization: Bearer <token>`:
+
+`POST /api/auth/login` · `GET /api/dashboard/stats` · `GET /api/users?cursor&limit&q` · `POST /api/users/:id/ban|unban|message` · `POST /api/broadcast` + `/:id/tick|pause|resume|stop` · `GET/PUT /api/menu` · `POST /api/menu/preview` · `GET/PUT /api/settings` · `POST /api/settings/webhook` · `GET /api/health` · `POST /telegram/webhook`
+
+## 🛡️ امنیت
+
+رمز و رازها فقط در Wrangler Secrets · مقایسه timing-safe + Rate-limit ورود · ذخیره فقط هش نشست در KV · احراز هویت وب‌هوک با هدر مخفی · ماسک شدن توکن ربات در API · اعتبارسنجی کامل ورودی‌ها (URL، طول، سقف ردیف/دکمه) · نادیده‌گرفتن کاربران مسدود
+
+## ⚠️ نکات مقیاس‌پذیری
+
+شمارنده‌های KV «تقریبی»اند (افزایش اتمیک ندارد ← برای آمار دقیق: D1) · برای ارسال همگانی ده‌ها هزارتایی: Cloudflare Queues یا Durable Objects (ساختار job/cursor همین الان سازگار است) · لاگ زنده: `npx wrangler tail`
+
+</div>
 
 ---
 
-## ☁️ استقرار پروداکشن
+## 🇬🇧 English
+
+<div dir="ltr" lang="en">
+
+## 📖 About
+
+A **bilingual (Persian/English)**, production-ready admin panel for a Telegram bot, hosted **entirely** on Cloudflare's serverless infrastructure — no servers, no external database, free-tier friendly:
+
+- **Backend:** Cloudflare Workers (ES Modules syntax + Hono framework)
+- **Database:** Cloudflare KV (sessions, settings, users, broadcasts)
+- **Frontend:** Single-page app with Tailwind CSS + Lucide icons + Vazirmatn font
+- **Telegram:** secure webhook via the `secret_token` header, instant 200 responses
+
+## ✨ Features
+
+| Area | Details |
+|---|---|
+| 🔐 Secure auth | Password lives in Wrangler Secrets, timing-safe comparison, 7-day sessions (only the SHA-256 hash is stored in KV), login rate-limiting (5 tries / 10 min / IP) |
+| 📊 Dashboard | Overall stats, **live worker status** (latency + data center + 30s pings), Telegram webhook health, recent users |
+| 👥 User management | KV-native cursor pagination, search, ban/unban with reason, direct messages, full details |
+| 📢 Broadcast engine | Text + HTML/MarkdownV2 + URL buttons, targeting (all / active 7d / active 30d), tunable **rate limiting**, live progress, pause/resume/stop, auto-detection of users who blocked the bot |
+| ⌨️ Menu builder | Edit welcome/help texts (FA/EN) with `{name}` `{username}` `{id}` variables, main keyboard, inline buttons (URL/Callback), **live bot simulator** + real preview sending |
+| ⚙️ Settings | Bot token (masked), admin IDs, default language, one-click webhook set/delete, broadcast tuning |
+| 🌍 Bilingual | Full FA/EN switch with RTL/LTR, dark/light mode, mobile-first design |
+
+The bundled bot implements `/start` · `/help` · `/lang` · `/id` · `/ping`, and its entire menu is controlled from the panel.
+
+## 🖥️ Local Development
+
+Prerequisite: Node.js ≥ 18
 
 ```bash
-npx wrangler login
+git clone https://github.com/developerAmira/telegram-bot-panel.git
+cd telegram-bot-panel
+npm install
 
-# ۱) ساخت KV namespace و جایگزینی id در wrangler.toml
-npx wrangler kv namespace create BOT_KV
+cp .dev.vars.example .dev.vars    # local password: change-me-dev
+npm run dev                       # → http://localhost:8787
 
-# ۲) تنظیم محرمانه‌ها (هرگز داخل wrangler.toml ننویسید!)
-npx wrangler secret put ADMIN_PASSWORD    # رمز ورود پنل
-npx wrangler secret put WEBHOOK_SECRET    # رشته تصادفی طولانی، مثل: openssl rand -hex 32
-npx wrangler secret put BOT_TOKEN         # (اختیاری) توکن @BotFather — از پنل هم قابل تنظیم است
-
-# ۳) دیپلوی
-npm run deploy
+npm run smoke                     # run the 29 automated tests
 ```
 
-### اتصال وب‌هوک تلگرام
-
-بعد از دیپلوی، در پنل وارد شوید → **تنظیمات → مدیریت وب‌هوک → تنظیم وب‌هوک**.
-دکمه، آدرس `https://<worker>.workers.dev/telegram/webhook` را با `secret_token` (همان `WEBHOOK_SECRET`) روی تلگرام ست می‌کند و از آن پس هر آپدیت فقط با هدر مخفی معتبر پردازش می‌شود.
-
-معادل دستی:
+## ☁️ Production Deployment (summary)
 
 ```bash
-curl "https://api.telegram.org/bot<TOKEN>/setWebhook" \
-  -d 'url=https://<worker>.workers.dev/telegram/webhook' \
-  -d 'secret_token=<WEBHOOK_SECRET>' \
-  -d 'allowed_updates=["message","callback_query"]'
+npx wrangler login                                  # 1) sign in to Cloudflare
+npx wrangler kv namespace create BOT_KV             # 2) create KV → put id in wrangler.toml
+npx wrangler secret put ADMIN_PASSWORD              # 3) panel login password
+npx wrangler secret put WEBHOOK_SECRET              #    webhook secret (openssl rand -hex 32)
+npx wrangler secret put BOT_TOKEN                   #    @BotFather token (optional)
+npm run deploy                                      # 4) deploy 🚀
 ```
 
-> 💡 در ربات `/id` را بفرستید تا آیدی عددی خود را بگیرید و در «آیدی ادمین‌ها» ثبت کنید.
+Then sign in to the panel → **Settings → "Set webhook"** → send `/start` to your bot on Telegram. Done!
+
+📌 **Full step-by-step guide (Persian) with troubleshooting:** [`DEPLOY.fa.md`](DEPLOY.fa.md)
+
+## 🔌 API (summary)
+
+All responses are `{ok,data}` / `{ok,error}` authenticated via `Authorization: Bearer <token>`:
+
+`POST /api/auth/login` · `GET /api/dashboard/stats` · `GET /api/users?cursor&limit&q` · `POST /api/users/:id/ban|unban|message` · `POST /api/broadcast` + `/:id/tick|pause|resume|stop` · `GET/PUT /api/menu` · `POST /api/menu/preview` · `GET/PUT /api/settings` · `POST /api/settings/webhook` · `GET /api/health` · `POST /telegram/webhook`
+
+## 🛡️ Security
+
+Secrets only in Wrangler Secrets · timing-safe comparison + login rate-limit · sessions stored hashed in KV · webhook authenticated by secret header · bot token always masked in API responses · full input validation (URLs, lengths, row/button limits) · banned users ignored by the bot
+
+## ⚠️ Scaling Notes
+
+KV counters are approximate (no atomic increments → use D1 for exact stats) · for very large broadcasts (tens of thousands), move the tick engine to Cloudflare Queues or Durable Objects (the job/cursor structure is already compatible) · live logs: `npx wrangler tail`
+
+</div>
 
 ---
 
-## 🔑 متغیرهای محیطی
+<div align="center">
 
-| نام | نوع | توضیح |
-|---|---|---|
-| `ADMIN_PASSWORD` | Secret | رمز ورود پنل (اجباری — بدون آن login با خطای `server_not_configured` رد می‌شود) |
-| `WEBHOOK_SECRET` | Secret | هدر `X-Telegram-Bot-Api-Secret-Token` برای احراز هویت وب‌هوک |
-| `BOT_TOKEN` | Secret | توکن ربات (اختیاری؛ ترجیحاً از پنل در KV ست شود) |
-| `APP_VERSION` | Var | نمایش در داشبورد |
-| `BOT_KV` | KV binding | پایگاه‌داده |
-| `ASSETS` | Assets binding | سرو فایل‌های SPA |
+## 📮 سازنده | Creator
 
-## 🗄️ طرح کلیدهای KV
+[![Developed & Published by @developer_as](assets/made-by-developer_as.svg)](https://t.me/developer_as)
 
-| کلید | مقدار | توضیح |
-|---|---|---|
-| `settings` | JSON | توکن، ادمین‌ها، زبان پیش‌فرض، تیونینگ broadcast |
-| `menu` | JSON | پیام‌ها و کیبوردهای ربات |
-| `stats` | JSON | شمارنده‌ها (تقریبی — KV افزایش اتمیک ندارد) |
-| `recent_users` | JSON | ۱۰ کاربر جدید |
-| `user:{id}` | JSON + metadata | رکورد کاربر؛ metadata فشرده مبنای لیست/جستجو/هدف‌گیری |
-| `session:{sha256}` | JSON + TTL ۷روز | نشست ادمین |
-| `rl:{ip}` | JSON + TTL ۱۰دقیقه | شمارنده ورود ناموفق |
-| `broadcast:{id}` | JSON | جاب ارسال همگانی + آرایه اهداف + cursor |
-| `broadcast:index` | JSON | ۲۰ جاب اخیر |
+[![@x.amirrezaa1](assets/instagram-badge.svg)](https://instagram.com/x.amirrezaa1)
 
-## 🔌 API
+**تلگرام | Telegram:** [@developer_as](https://t.me/developer_as) · **اینستاگرام | Instagram:** [@x.amirrezaa1](https://instagram.com/x.amirrezaa1)
 
-همه پاسخ‌ها `{ok:true,data}` یا `{ok:false,error}` هستند. احراز هویت با هدر `Authorization: Bearer <token>`.
+ساخته‌شده با ❤️ روی Cloudflare Workers · Made with ❤️ on Cloudflare Workers
 
-| متد | مسیر | توضیح |
-|---|---|---|
-| POST | `/api/auth/login` | ورود `{password}` → `{token, expiresAt}` |
-| GET | `/api/auth/session` | اعتبارسنجی نشست |
-| POST | `/api/auth/logout` | خروج |
-| GET | `/api/health` | عمومی — سلامت ورکر + colo |
-| GET | `/api/dashboard/stats` | آمار + کاربران اخیر + وضعیت وب‌هوک |
-| GET | `/api/users?cursor&limit&q` | لیست/جستجوی کاربران |
-| GET | `/api/users/:id` | رکورد کامل |
-| POST | `/api/users/:id/ban` | مسدودسازی `{reason?}` |
-| POST | `/api/users/:id/unban` | آزادسازی |
-| POST | `/api/users/:id/message` | پیام مستقیم `{text, parseMode?}` |
-| POST | `/api/broadcast` | ساخت جاب `{text, parseMode?, buttons?, target}` |
-| POST | `/api/broadcast/:id/tick` | ارسال دسته بعدی (Rate-limited) |
-| POST | `/api/broadcast/:id/pause\|resume\|stop` | کنترل جاب |
-| GET | `/api/broadcast(/:id)` | وضعیت/تاریخچه |
-| GET/PUT | `/api/menu` | خواندن/ذخیره منو |
-| POST | `/api/menu/preview` | ارسال پیش‌نمایش `{chatId}` |
-| GET/PUT | `/api/settings` | تنظیمات (توکن همیشه ماسک برمی‌گردد) |
-| POST | `/api/settings/webhook` | `{action:'set'\|'delete'}` |
-| POST | `/telegram/webhook` | وب‌هوک تلگرام (هدر مخفی الزامی) |
-
----
-
-## 🛡️ چک‌لیست امنیتی پیاده‌سازی‌شده
-
-- ✅ رمز و رازها فقط در **Wrangler Secrets** (در کد یا KV خام never)
-- ✅ مقایسه رمز **timing-safe** (هش + XOR)؛ ورود با **Rate-limit** بر اساس IP
-- ✅ در KV فقط **هش نشست** ذخیره می‌شود؛ TTL خودکار
-- ✅ وب‌هوک فقط با هدر `X-Telegram-Bot-Api-Secret-Token` معتبر پردازش می‌شود؛ پردازش در `waitUntil` و پاسخ فوری ۲۰۰ به تلگرام
-- ✅ توکن ربات در پاسخ‌های API **ماسک** می‌شود؛ اعتبارسنجی کامل ورودی‌ها (URL دکمه‌ها، طول متن‌ها، سقف ردیف/دکمه)
-- ✅ ربات پیام کاربران مسدود را نادیده می‌گیرد
-
-## ⚠️ نکات پروداکشن و مقیاس‌پذیری
-
-1. **KV eventually consistent است** — شمارنده‌های آماری «تقریبی»اند (عملیات افزایش اتمیک ندارد). برای آمار دقیق یا داده رابطه‌ای به **D1** مهاجرت کنید.
-2. **Subrequest limit** — هر tick حداکثر ۵۰ ارسال (پیش‌فرض ۲۵). با پلن پرداختی می‌توانید `batchSize` را بالا ببرید.
-3. **ارسال همگانی خیلی بزرگ** (>ده‌ها هزار کاربر) — برای مقیاس واقعی، موتور tick را به **Cloudflare Queues** یا **Durable Objects** منتقل کنید تا بدون باز بودن پنل ادامه یابد. ساختار job/cursor همین الان با آن‌ها سازگار است.
-4. **رقابت هم‌زمانی** — برای جلوگیری از دوبل‌ارسال، tick با وضعیت `ticking` قفل می‌شود (قفل سبک؛ برای تضمین کامل از Durable Object استفاده کنید).
-5. لاگ زنده: `npm run tail`
-
-## 🎨 شخصی‌سازی ربات
-
-- متن‌های ثابت ربات (پاسخ دستور ناشناخته، انتخاب زبان و…): `src/telegram.js` → `BOT_T`
-- منطق دستورات جدید: تابع `onMessage` در همان فایل (سوئیچ دستورات)
-- دکمه‌های callback اختصاصی: انتهای `onCallback`
-- ظاهر پنل: `public/index.html` (Tailwind) — رنگ برند در `tailwind.config.colors.brand`
-
----
-
-ساخته‌شده با ❤️ روی [Cloudflare Workers](https://workers.cloudflare.com/) + [Hono](https://hono.dev/) + [Tailwind CSS](https://tailwindcss.com/) + [Lucide Icons](https://lucide.dev/)
+</div>
