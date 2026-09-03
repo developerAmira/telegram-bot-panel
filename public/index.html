@@ -6,8 +6,7 @@
   <title>BotPanel — پنل مدیریت ربات</title>
   <meta name="robots" content="noindex">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232aabee'%3E%3Cpath d='M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z'/%3E%3C/svg%3E">
-  <!-- جلوگیری از فلش تم/زبان قبل از اجرای اپ -->
-  <script>
+    <script>
     (function () {
       try {
         var t = localStorage.getItem('bp_theme') || 'dark';
@@ -17,13 +16,11 @@
         d.lang = l; d.dir = (l === 'fa') ? 'rtl' : 'ltr';
       } catch (e) {}
     })();
-  </script>
-  <!-- فونت وزیرمتن (فارسی/لاتین) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind CSS (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -36,11 +33,11 @@
         },
       },
     };
-  </script>
+</script>
   <style>
     html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     body { touch-action: manipulation; overscroll-behavior-y: contain; }
-    /* جلوگیری از زوم خودکار iOS هنگام فوکوس (فونت اینپوت‌ها در موبایل = ۱۶px) */
+
     @media (max-width: 767px) {
       input, select, textarea { font-size: 16px !important; }
     }
@@ -49,24 +46,19 @@
     .tabular { font-variant-numeric: tabular-nums; }
     @keyframes pulseDot { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
     .live-dot { animation: pulseDot 1.6s ease-in-out infinite; }
-    /* قفل سرریز افقی: صفحه هرگز به چپ/راست اسکرول نمی‌شود (clip، برخلاف hidden، اسکرول عمودی و sticky را سالم نگه می‌دارد) */
+
     html, body { overflow-x: clip; }
     @supports not (overflow: clip) { html, body { overflow-x: hidden; } }
 
-    /* متن‌های رابط کاربری قابل انتخاب/کپی نباشند (فیلدهای ورودی برای تایپ استثنا هستند) */
     body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     input, textarea, select, [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
 
-    /* ═══ مقاوم‌سازی در برابر بزرگ‌نمایی فونت اندروید (Settings◀Font size تا ۱۳۷٪+) ═══
-       فرزندان grid/flex به‌طور پیش‌فرض min-width:auto دارند و زیر عرض صفحه جمع نمی‌شوند؛
-       با min-width:0 متن‌ها به خط بعد می‌روند به‌جای اینکه کادر از صفحه بیرون بزند. */
     @media (max-width: 1023px) {
       .grid > * { min-width: 0; }
       .flex-1 { min-width: 0; }
       input, select, textarea { min-width: 0; }
     }
 
-    /* ═══ جدول کاربران در موبایل: به‌جای جدولِ اسکرول‌خورده، ردیف‌های کارتی بدون اسکرول افقی ═══ */
     @media (max-width: 639px) {
       .bp-utable thead { display: none !important; }
       .bp-utable, .bp-utable tbody { display: block; width: 100%; }
@@ -78,48 +70,38 @@
       .dark .bp-utable tbody tr { border-color: #1e293b !important; }
       .bp-utable tbody td { display: block; width: auto; border: 0; padding: 0.125rem 0 !important; }
       .bp-utable tbody td[data-c="user"] { flex: 1 1 100%; }
-      .bp-utable tbody td[data-c="joined"] { display: none !important; } /* در جزئیات کاربر موجود است */
+      .bp-utable tbody td[data-c="joined"] { display: none !important; }
       .bp-utable tbody td[data-c="actions"] {
         flex: 1 1 100%; display: flex; justify-content: flex-end; align-items: center; gap: 0.25rem;
         margin-top: 0.375rem; padding-top: 0.5rem !important; border-top: 1px dashed #e2e8f0;
       }
       .dark .bp-utable tbody td[data-c="actions"] { border-top-color: #1e293b; }
       .bp-utable tbody td[colspan] { flex: 1 1 100%; text-align: center; }
-      /* نام کاربر در کارت موبایل محدود به عرض کارت باشد (نه ۱۴۰px دسکتاپ) */
+
       .bp-utable tbody td[data-c="user"] .text-sm { max-width: 100% !important; }
     }
-  </style>
+</style>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen">
   <div id="app"></div>
 
-  <!-- مودال سراسری -->
-  <div id="modal-wrap" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
+    <div id="modal-wrap" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" data-act="modalClose"></div>
     <div id="modal-box" class="relative w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl animate-fadeIn max-h-[90vh] overflow-y-auto"></div>
   </div>
 
-  <!-- توست‌ها -->
-  <div id="toasts" class="fixed z-[60] bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 flex flex-col gap-2 w-[min(92vw,380px)] pointer-events-none"></div>
+    <div id="toasts" class="fixed z-[60] bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 flex flex-col gap-2 w-[min(92vw,380px)] pointer-events-none"></div>
 
   <noscript><div style="padding:2rem;text-align:center">This app requires JavaScript / این پنل به جاوااسکریپت نیاز دارد.</div></noscript>
 
-  <!-- آیکون‌های Lucide -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
   <script>
   'use strict';
-  /* ═══════════════════════════════════════════════════════════════
-     BotPanel — SPA پنل مدیریت ربات تلگرام (Cloudflare Workers + KV)
-     بخش‌ها: i18n ▸ state ▸ helpers ▸ login ▸ shell ▸ dashboard ▸
-             users ▸ broadcast ▸ menu ▸ settings ▸ router ▸ boot
-     ═══════════════════════════════════════════════════════════════ */
 
-  // ─────────────────────────── i18n ────────────────────────────────
   const I18N = {
     fa: {
       appName: 'پنل مدیریت ربات', appShort: 'BotPanel', poweredBy: 'قدرت‌گرفته از Cloudflare Workers',
-      // login
       loginSub: 'برای مدیریت ربات وارد شوید', password: 'رمز عبور', passwordPh: '••••••••',
       support: 'پشتیبانی', msgTab: 'پیام متنی', pollTab: 'نظرسنجی', photoTab: 'عکس و فایل', resultsTab: 'نتایج و آمار',
       targetUsers: 'کاربران خاص', targetChat: 'کانال / گروه', usersIdsPh: 'آیدی‌های عددی با کاما — مثال: 11111111, 22222222',
@@ -154,23 +136,18 @@
       sessionsNote: 'پس از تغییر رمز، همه دستگاه‌های دیگر از حساب خارج می‌شوند (جز همین نشست).',
       forgotPw: 'فراموشی رمز',
       relogin: 'نشست منقضی شد؛ دوباره وارد شوید',
-      // nav
       dashboard: 'داشبورد', users: 'کاربران', broadcast: 'ارسال همگانی', menuBuilder: 'منو و دکمه‌ها', settings: 'تنظیمات',
       logout: 'خروج', confirmLogout: 'از پنل خارج می‌شوید؟',
-      // common
       save: 'ذخیره', saved: 'ذخیره شد', cancel: 'انصراف', close: 'بستن', confirm: 'تایید', remove: 'حذف',
       refresh: 'بروزرسانی', loading: 'در حال بارگذاری…', none: '—', send: 'ارسال', sending: 'در حال ارسال…',
       errorGeneric: 'خطایی رخ داد', copy: 'کپی', copied: 'کپی شد',
-      // live status
       liveStatus: 'وضعیت لحظه‌ای ورکر', operational: 'فعال', offline: 'قطع', latency: 'تأخیر',
       lastCheck: 'آخرین بررسی', region: 'مرکز داده', checkNow: 'بررسی فوری',
-      // dashboard
       totalUsers: 'کل کاربران', bannedUsers: 'کاربران مسدود', messagesProcessed: 'پیام‌های پردازش‌شده',
       broadcastsCreated: 'ارسال‌های همگانی', messagesSent: 'پیام‌های ارسال‌شده',
       webhookStatus: 'وضعیت وب‌هوک تلگرام', notConfigured: 'تنظیم نشده', pendingUpdates: 'آپدیت‌های در انتظار',
       lastError: 'آخرین خطا', recentUsers: 'کاربران اخیر', quickActions: 'دسترسی سریع',
       goSettings: 'رفتن به تنظیمات', noUsersYet: 'هنوز کاربری ثبت نشده', botConfigured: 'ربات پیکربندی نشده است',
-      // users
       searchUsers: 'جستجوی نام، یوزرنیم یا آیدی…', perPage: 'در صفحه', id: 'آیدی', user: 'کاربر',
       lang: 'زبان', status: 'وضعیت', joined: 'عضویت', actions: 'عملیات', active: 'فعال', inactive: 'غیرفعال',
       banned: 'مسدود', blockedBot: 'بات را بلاک کرده', noUsersFound: 'کاربری یافت نشد',
@@ -178,7 +155,6 @@
       banReason: 'دلیل (اختیاری)', sendMessage: 'ارسال پیام', userDetails: 'جزئیات کاربر',
       firstName: 'نام', username: 'یوزرنیم', lastSeen: 'آخرین فعالیت', bannedAt: 'زمان مسدودی', reason: 'دلیل',
       messageText: 'متن پیام', msgSent: 'پیام ارسال شد', page: 'صفحه', next: 'بعدی', prev: 'قبلی',
-      // broadcast
       newBroadcast: 'ارسال پیام همگانی جدید', target: 'مخاطبان', allUsers: 'همه کاربران (غیرمسدود)',
       active7d: 'فعال در ۷ روز گذشته', active30d: 'فعال در ۳۰ روز گذشته', parseMode: 'فرمت متن',
       plain: 'متن ساده', addUrlRow: 'افزودن ردیف دکمه', addBtn: '+ دکمه', btnText: 'متن دکمه',
@@ -188,7 +164,6 @@
       running: 'در حال ارسال', paused: 'متوقف موقت', stopped: 'متوقف‌شده', done: 'تکمیل‌شده', failed: 'ناموفق',
       createdAt: 'ایجاد', chars: 'کاراکتر', targetHint: 'کاربران مسدود و افرادی که ربات را بلاک کرده‌اند به‌صورت خودکار حذف می‌شوند',
       noTargets: 'کاربر هدفی یافت نشد',
-      // menu
       menuHint: 'پیکربندی پیام‌ها، کیبورد اصلی و دکمه‌های شیشه‌ای ربات', welcomeTab: 'پیام خوش‌آمد',
       inlineTab: 'دکمه‌های شیشه‌ای',
       welcomeFa: 'متن فارسی (/start)', welcomeEn: 'متن انگلیسی (/start)', helpFa: 'راهنمای فارسی (/help)', helpEn: 'راهنمای انگلیسی (/help)',
@@ -197,7 +172,6 @@
       simulator: 'شبیه‌ساز ربات', simHint: 'رفتار ربات را با پیکربندی فعلی تست کنید', sendTest: 'ارسال پیش‌نمایش واقعی',
       chatIdPh: 'آیدی عددی چت (مثلاً خودتان)', testSent: 'پیش‌نمایش ارسال شد', resetDefaults: 'بازنشانی به پیش‌فرض',
       confirmReset: 'منو به حالت پیش‌فرض بازگردانده شود؟', botReplies: 'ربات', you: 'شما',
-      // settings
       botSettings: 'تنظیمات ربات', botToken: 'توکن ربات', tokenStored: 'توکن ذخیره‌شده:',
       tokenHint: 'از @BotFather دریافت می‌شود. خالی بگذارید تا تغییر نکند.', tokenMissingWarn: 'هنوز توکنی تنظیم نشده است',
       defaultBotLang: 'زبان پیش‌فرض (کاربران جدید)', broadcastTuning: 'تیونینگ ارسال همگانی',
@@ -298,7 +272,6 @@
     },
   };
 
-  // ─────────────────────────── state ───────────────────────────────
   const S = {
     token: localStorage.getItem('bp_token') || '',
     lang: localStorage.getItem('bp_lang') || 'fa',
@@ -315,16 +288,12 @@
     { id: 'menu', icon: 'keyboard' },
     { id: 'settings', icon: 'settings' },
   ];
-  // وضعیت صفحات
-  const UP = { cursor: null, stack: [], page: 1, limit: 20, q: '' };      // users
-  const BC = { tab: 'text', target: 'all', rows: [[]], pollOpts: ['', ''], userIds: '', chatId: '', running: false, jobId: null }; // broadcast
-  const MU = { menu: null, defaults: null, tab: 'welcome', sub: null };   // menu (sub = شناسه زیرمنو در حال ویرایش)
-  const CF = { resolve: null };                                            // confirm
-  const MODAL = { ctx: {} };                                              // modal context
+  const UP = { cursor: null, stack: [], page: 1, limit: 20, q: '' };
+  const BC = { tab: 'text', target: 'all', rows: [[]], pollOpts: ['', ''], userIds: '', chatId: '', running: false, jobId: null };
+  const MU = { menu: null, defaults: null, tab: 'welcome', sub: null };
+  const CF = { resolve: null };
+  const MODAL = { ctx: {} };
 
-  // ─── publisher credit (obfuscated — do not edit) ───
-  // داده ناشر به‌صورت XOR-شده ذخیره شده تا به‌سادگی قابل ویرایش/حذف نباشد؛
-  // در زمان اجرا دیکد، freeze و رندر می‌شود و اگر از DOM حذف شود خودکار برمی‌گردد.
   var _0x7a3d = [
     220,133,211,192,133,157,133,195,194,209,
     194,203,200,215,194,213,248,198,212,133,
@@ -354,14 +323,12 @@
   var _0xC = Object.freeze(JSON.parse(
     new TextDecoder().decode(Uint8Array.from(_0x7a3d, function (b) { return b ^ 0xA7; }))
   ));
-  // لوگوی کوچک تلگرام (هواپیمای کاغذی رسمی) — SVG داخلی
   var _TG_SVG = '<svg viewBox="0 0 24 24" fill="none" class="w-[18px] h-[18px]"><circle cx="12" cy="12" r="12" fill="url(#_tgcr)"/><defs><linearGradient id="_tgcr" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2AABEE"/><stop offset="1" stop-color="#229ED9"/></linearGradient></defs><path fill="#fff" transform="translate(5.2,5.2) scale(0.58)" d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>';
-  // لوگوی کوچک اینستاگرام — SVG داخلی
   var _IG_SVG = '<svg viewBox="0 0 24 24" fill="none" class="w-[18px] h-[18px]"><circle cx="12" cy="12" r="12" fill="url(#_igcr)"/><defs><linearGradient id="_igcr" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#F58529"/><stop offset="0.5" stop-color="#DD2A7B"/><stop offset="1" stop-color="#8134AF"/></linearGradient></defs><g transform="translate(6,6)" stroke="#fff" stroke-width="1.6" stroke-linecap="round" fill="none"><rect x="0" y="0" width="12" height="12" rx="3.6"/><circle cx="6" cy="6" r="2.7"/><circle cx="10" r="0.9" cy="2" fill="#fff" stroke="none"/></g></svg>';
   function _crLink(svg, handle, url, label) {
     var a = document.createElement('a');
     a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-    a.title = label + ' @' + handle;       // راهنمای ابزار
+    a.title = label + ' @' + handle;
     a.setAttribute('aria-label', label + ' @' + handle);
     a.setAttribute('data-cr', '1');
     a.className = 'w-9 h-9 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 hover:scale-110 active:scale-95 transition shadow-sm';
@@ -374,7 +341,6 @@
     var old = document.querySelector('.bp-credit');
     if (old) old.remove();
     var en = (typeof S !== 'undefined' && S.lang === 'en');
-    // فوتر: نوار رنگی متمایز (گرادیان برند) + متن اعتبار + لوگوهای تلگرام/اینستاگرام
     var w = document.createElement('footer');
     w.className = 'bp-credit mt-8 px-4 pb-24 md:pb-8 select-none';
     var band = document.createElement('div');
@@ -392,10 +358,8 @@
     w.appendChild(band);
     host.appendChild(w);
   }
-  // نگهبان: اگر فوتر از DOM حذف شود، به‌صورت خودکار بازنویسی می‌شود
   setInterval(function () { if (!document.querySelector('.bp-credit')) _crR(); }, 5000);
 
-  // ─────────────────────────── helpers ─────────────────────────────
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
   const t = (k) => (I18N[S.lang] && I18N[S.lang][k]) || I18N.fa[k] || k;
@@ -476,7 +440,6 @@
     });
   }
 
-  // وضعیت زنده ورکر — در topbar و کارت داشبورد
   function paintLive() {
     const L = S.live;
     const pill = $('live-pill');
@@ -519,7 +482,6 @@
     addTimer(setInterval(ping, 30000));
   }
 
-  // نشان تعداد پیام خوانده‌نشده پشتیبانی روی آیتم منو
   function fetchSupportBadge() {
     if (!S.token) return;
     fetch('/api/support/tickets/unread', { headers: { Authorization: 'Bearer ' + S.token } })
@@ -539,7 +501,6 @@
       }).catch(() => {});
   }
 
-  // ─────────────────────────── login ───────────────────────────────
   function renderLogin(msg) {
     clearTimers();
     document.title = 'BotPanel — ' + t('signIn');
@@ -569,8 +530,7 @@
       '</div></div>';
     refreshIcons();
     $('pw').focus();
-    _crR(document.querySelector('#app .max-w-sm') || undefined); // فوتر ناشر زیر کارت ورود
-    // نمایش راهنمای رمز پیش‌فرض فقط تا وقتی از پنل عوض نشده باشد
+    _crR(document.querySelector('#app .max-w-sm') || undefined);
     fetch('/api/auth/default-status').then((x) => x.json()).then((j) => {
       if (j && j.ok && j.data.defaultActive) {
         const h = $('def-pw-hint');
@@ -618,7 +578,6 @@
     render();
   }
 
-  // ─────────────────────────── shell ───────────────────────────────
   function renderShell() {
     document.title = 'BotPanel — ' + t(S.route);
     const nav = (mobile) => NAV.map((n) => {
@@ -634,7 +593,6 @@
     }).join('');
 
     $('app').innerHTML =
-      // ── سایدبار دسکتاپ ──
       '<aside class="hidden md:flex fixed inset-y-0 start-0 w-64 flex-col border-e border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 z-30">' +
       '<div class="flex items-center gap-3 px-2 py-3 mb-4">' +
       '<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-blue-600 flex items-center justify-center shadow-md shadow-brand-500/25"><i data-lucide="send" class="w-5 h-5 text-white"></i></div>' +
@@ -645,9 +603,7 @@
       '<div class="text-[10px] text-slate-400 px-2 pt-3 border-t border-slate-100 dark:border-slate-800 mt-3">' + t('poweredBy') + '</div>' +
       '</aside>' +
 
-      // ── محتوای اصلی ──
       '<div id="main-col" class="md:ms-64 min-h-screen flex flex-col">' +
-      // topbar
       '<header class="sticky top-0 z-20 bg-white/85 dark:bg-slate-950/85 backdrop-blur border-b border-slate-200 dark:border-slate-800">' +
       '<div class="max-w-7xl mx-auto px-4 h-14 flex items-center gap-2">' +
       '<div class="md:hidden w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-blue-600 flex items-center justify-center"><i data-lucide="send" class="w-4 h-4 text-white"></i></div>' +
@@ -661,20 +617,17 @@
       '<main id="view" class="flex-1 w-full max-w-7xl mx-auto p-4 md:p-7 pb-24 md:pb-10 animate-fadeIn"></main>' +
       '</div>' +
 
-      // ── ناوبری پایین موبایل ──
       '<nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 px-2 pb-[env(safe-area-inset-bottom)]">' +
       '<div class="flex items-stretch max-w-lg mx-auto">' + nav(true) + '</div></nav>';
 
     paintLive();
-    // رندر نمای فعلی
     ({ dashboard: renderDashboard, users: renderUsers, broadcast: renderBroadcast, support: renderSupport, menu: renderMenu, settings: renderSettings })[S.route]();
     refreshIcons();
-    _crR(); // فوتر ناشر
-    fetchSupportBadge(); // نشان خوانده‌نشده پشتیبانی
+    _crR();
+    fetchSupportBadge();
   }
-  </script>
+</script>
   <script>
-  /* ═══════ PART 2: views ▸ actions ▸ router ▸ boot (v2 — نظرسنجی/عکس/پشتیبانی/زیرمنو) ═══════ */
 
   const SIM_T = {
     fa: { unknown: '🤔 متوجه نشدم. برای راهنما /help را بزنید.', chooseLang: '🌍 زبان خود را انتخاب کنید:', yourId: '🆔 آیدی عددی شما: ۵۵۵۰۰۱۲۳۴', pong: '🏓 پونگ! ربات فعال است.', online: 'آنلاین', bot: 'ربات شما', supIntro: '🛡 در حالت گفتگو با پشتیبانی هستید. پیام خود را بنویسید.' },
@@ -684,7 +637,6 @@
   const loadingRow = (cols) =>
     '<tr><td colspan="' + cols + '" class="py-12 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin inline-block align-middle me-2"></i>' + t('loading') + '</td></tr>';
 
-  // ═══════════════════════ داشبورد ═══════════════════════
   function statCard(icon, tint, valId, labelKey) {
     return '<div class="' + CLS.card + ' p-5">' +
       '<div class="flex items-center gap-3">' +
@@ -777,7 +729,6 @@
     }
   }
 
-  // ═══════════════════════ کاربران ═══════════════════════
   function userRow(u) {
     const weekAgo = Date.now() - 7 * 86400000;
     const st = u.banned
@@ -936,7 +887,6 @@
     }
   }
 
-  // ═══════════════════════ ارسال پیام / نظرسنجی / عکس ═══════════════════════
   function bcChip(status) {
     const m = {
       running: ['bg-sky-500/10 text-sky-600 dark:text-sky-400', 'radio'],
@@ -949,7 +899,6 @@
     return '<span class="' + CLS.chip + ' ' + cls + '"><i data-lucide="' + icon + '" class="w-3 h-3"></i>' + t(status) + '</span>';
   }
 
-  // انتخاب مخاطب مشترک بین تب‌ها
   function bcTargetWidget() {
     const opt = (v, lbl) => '<option value="' + v + '"' + (BC.target === v ? ' selected' : '') + '>' + lbl + '</option>';
     return '<div class="grid sm:grid-cols-2 gap-4 mb-4">' +
@@ -1103,7 +1052,7 @@
         '<p class="text-[11px] text-slate-400">' + fmtDate(p.createdAt) + '</p></div>' +
         '<div class="flex items-center gap-2 text-xs font-bold"><span class="text-emerald-500">👍 ' + fmtNum(p.likes) + '</span><span class="text-rose-500">👎 ' + fmtNum(p.dislikes) + '</span></div></div>'
       ).join('') : '<p class="text-sm text-slate-400 text-center py-4">' + t('noPosts') + '</p>';
-    } catch (e) { /* سکوت */ }
+    } catch (e) {   }
   }
 
   function bcPaint(job) {
@@ -1151,10 +1100,9 @@
         '</div>' + bcChip(j.status) + '</div>'
       ).join('') : '<p class="text-sm text-slate-400 text-center py-6">' + t('noHistory') + '</p>';
       refreshIcons();
-    } catch (e) { /* سکوت */ }
+    } catch (e) {   }
   }
 
-  // ارسال (هر تب) — فوری برای کاربر خاص/کانال، جاب دسته‌ای برای همگانی
   async function bcSend() {
     const kind = BC.tab;
     const body = { kind, target: BC.target };
@@ -1204,7 +1152,6 @@
     document.querySelectorAll('.poll-opt').forEach((el) => { BC.pollOpts[+el.dataset.i] = el.value; });
   }
 
-  // ═══════════════════════ صندوق پشتیبانی ═══════════════════════
   function renderSupport() {
     $('view').innerHTML =
       '<div class="' + CLS.card + ' overflow-hidden">' +
@@ -1294,11 +1241,6 @@
     } catch (e) { toast(e.message, 'error'); }
   }
 
-
-  // ═══════════════════════ منو، زیرمنوها، ویرایشگر دکمه‌ها و شبیه‌ساز ═══════════════════════
-  // دکمه‌های شیشه‌ای ۴ نوع دارند: url | callback | submenu | text
-  // هر صفحه (اصلی یا زیرمنو) یک ویرایشگر اختصاصی «جایگاه‌دار» دارد:
-  // موقعیت هر دکمه = ردیف + ستون؛ افزودن با انتخاب ردیف/ستون، جابه‌جایی با فلش‌ها
   const BTN_TYPES = [
     ['url', '🔗 ' + t('typeUrl')],
     ['callback', '⚡ ' + t('typeCallback')],
@@ -1306,7 +1248,6 @@
     ['text', '💬 ' + t('typeText')],
   ];
 
-  // آرایه دکمه‌های در حال ویرایش (روت یا زیرمنوی فعال)
   function ctxButtons() {
     if (!MU.menu) return [];
     if (MU.sub) {
@@ -1365,7 +1306,6 @@
     } catch (e) { toast(e.message, 'error'); }
   }
 
-  // دکمه پشتیبانی خودکار در شبیه‌ساز (مطابق ربات واقعی)
   function simWithSupport(rows) {
     const sb = MU.settings && MU.settings.supportButton;
     if (!sb || sb.enabled === false) return rows || [];
@@ -1378,11 +1318,10 @@
     return !!(MU.settings && MU.settings.botLangMode && MU.settings.botLangMode !== 'both');
   }
 
-  // ورودی مقدار دکمه بر اساس نوع (در ویرایشگر؛ برای submenu یک select از زیرمنوها)
   function btnValueEl(b) {
     if (b.type === 'submenu') {
       const opts = Object.entries(MU.menu.submenus || {})
-        .filter(([id]) => id !== MU.sub) // جلوگیری از ارجاع به خود
+        .filter(([id]) => id !== MU.sub)
         .map(([id, sm]) => '<option value="' + esc(id) + '"' + (b.value === id ? ' selected' : '') + '>' + esc(sm.title || id) + ' (' + esc(id) + ')</option>').join('');
       return '<select class="ib-v ' + CLS.input + ' !py-2 !bg-white dark:!bg-slate-800 col-span-2 sm:col-span-1" dir="ltr">' +
         (opts || '<option value="">' + t('valSubmenu') + '</option>') + '</select>';
@@ -1391,8 +1330,6 @@
     return '<input dir="ltr" class="ib-v ' + CLS.input + ' !py-2 !bg-white dark:!bg-slate-800 col-span-2 sm:col-span-1" placeholder="' + ph + '" value="' + esc(b.value) + '">';
   }
 
-  // ═══ ویرایشگر جایگاه‌دار دکمه‌های یک صفحه (اصلی یا زیرمنو) ═══
-  // هر دکمه: کارت با فیلدها + فلش‌های جابه‌جایی (◀▶ داخل ردیف، ▲▼ بین ردیف‌ها) + حذف
   function renderBtnEditor() {
     const host = $('btn-editor');
     if (!host || !MU.menu) return;
@@ -1432,7 +1369,6 @@
       '</div></div>';
   }
 
-  // ═══ مودال افزودن دکمه با انتخاب ردیف و ستون ═══
   function modalValueEl(type) {
     if (type === 'submenu') {
       const ids = Object.entries(MU.menu.submenus || {}).filter(([id]) => id !== MU.sub);
@@ -1479,7 +1415,6 @@
     if (!host || !MU.menu) return;
     const m = MU.menu;
 
-    // ── ویرایشگر اختصاصی زیرمنو (بخش جدا برای دکمه‌های هر زیرمنو) ──
     if (MU.sub) {
       const sm = m.submenus[MU.sub] || { title: '', text: '', buttons: [] };
       host.innerHTML =
@@ -1498,7 +1433,6 @@
       return;
     }
 
-    // ── تب‌ها: پیام‌ها | دکمه‌های اصلی | زیرمنوها ──
     const tabs = [['welcome', 'message-circle'], ['inline', 'link-2'], ['submenus', 'folder-tree']];
     let body = '';
     if (MU.tab === 'welcome') {
@@ -1538,7 +1472,6 @@
     refreshIcons();
   }
 
-  // خواندن مقادیر DOM به مدل
   function syncMenuDom() {
     if (!MU.menu) return;
     const m = MU.menu;
@@ -1569,7 +1502,6 @@
     ).filter((r) => r.length);
   }
 
-  // ── شبیه‌ساز ──
   function renderSim() {
     const log = $('sim-log');
     if (!log || !MU.menu) return;
@@ -1591,7 +1523,6 @@
       '<div class="flex justify-center my-1"><div class="bg-slate-600/60 text-slate-100 text-[11px] leading-4 rounded-xl px-3 py-2 max-w-[90%] text-center" dir="auto">💬 <b>' + t('simAlert') + '</b><br>' + esc(text) + '</div></div>');
     simScroll();
   }
-  // دکمه‌های شبیه‌ساز — قابل کلیک برای گشتن در زیرمنوها/پاپ‌آپ
   function simPills(buttons) {
     if (!buttons || !buttons.length) return '';
     const rows = buttons.map((row) =>
@@ -1601,7 +1532,6 @@
   }
   function simScroll() { const l = $('sim-log'); if (l) l.scrollTop = l.scrollHeight; }
 
-  // نمایش یک صفحه منو در شبیه‌ساز (روت یا زیرمنو)
   function simShowPage(pageId) {
     const m = MU.menu;
     if (pageId === 'root') {
@@ -1645,7 +1575,6 @@
       simBot(st.unknown);
     }
   }
-  // ═══════════════════════ تنظیمات ═══════════════════════
   function renderSettings() {
     $('view').innerHTML =
       '<div class="grid lg:grid-cols-2 gap-4 items-start">' +
@@ -1671,7 +1600,6 @@
       '<button data-act="saveGeneral" class="' + CLS.btnP + '"><i data-lucide="save" class="w-4 h-4"></i>' + t('save') + '</button></div>' +
 
       '<div class="space-y-4">' +
-      // امنیت و رمز
       '<div class="' + CLS.card + ' p-5 md:p-6">' +
       '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="key-round" class="w-4 h-4 text-brand-500"></i>' + t('security') + '</h3>' +
       '<div class="space-y-3">' +
@@ -1684,7 +1612,6 @@
       '<input id="st-new-pw2" type="password" autocomplete="new-password" class="' + CLS.input + '"></div></div>' +
       '<p class="text-[11px] text-slate-400">' + t('sessionsNote') + '</p></div>' +
       '<button data-act="changePw" class="' + CLS.btnP + ' mt-4"><i data-lucide="key-round" class="w-4 h-4"></i>' + t('changePw') + '</button></div>' +
-      // قفل کانال
       '<div class="' + CLS.card + ' p-5 md:p-6">' +
       '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="lock" class="w-4 h-4 text-brand-500"></i>' + t('channelLock') + '</h3>' +
       '<label class="flex items-center gap-2.5 mb-4 text-sm cursor-pointer">' +
@@ -1695,21 +1622,18 @@
       '<input id="st-ch-url" dir="ltr" placeholder="https://t.me/…" class="' + CLS.input + '"></div>' +
       '<p class="text-[11px] text-slate-400">' + t('chHint') + '</p>' +
       '<button data-act="saveChannel" class="' + CLS.btnP + ' mt-4"><i data-lucide="save" class="w-4 h-4"></i>' + t('save') + '</button></div>' +
-      // وب‌هوک
       '<div class="' + CLS.card + ' p-5 md:p-6">' +
       '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="webhook" class="w-4 h-4 text-brand-500"></i>' + t('webhookMgmt') + '</h3>' +
       '<div id="st-wh-box" class="mb-4"><div class="py-4 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin inline-block"></i></div></div>' +
       '<div class="flex gap-2">' +
       '<button data-act="setWebhook" data-action="set" class="' + CLS.btnP + '"><i data-lucide="plug-zap" class="w-4 h-4"></i>' + t('setWebhook') + '</button>' +
       '<button data-act="setWebhook" data-action="delete" class="' + CLS.btnS + ' text-rose-500"><i data-lucide="unplug" class="w-4 h-4"></i>' + t('delWebhook') + '</button></div></div>' +
-      // تیونینگ
       '<div class="' + CLS.card + ' p-5 md:p-6">' +
       '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="gauge" class="w-4 h-4 text-brand-500"></i>' + t('broadcastTuning') + '</h3>' +
       '<div class="grid grid-cols-2 gap-3">' +
       '<div><label class="' + CLS.label + '">' + t('batchSize') + '</label><input id="st-batch" type="number" min="1" max="50" class="' + CLS.input + '"></div>' +
       '<div><label class="' + CLS.label + '">' + t('delayMs') + '</label><input id="st-delay" type="number" min="20" max="500" step="10" class="' + CLS.input + '"></div></div>' +
       '<button data-act="saveTuning" class="' + CLS.btnS + ' mt-4"><i data-lucide="save" class="w-4 h-4"></i>' + t('save') + '</button></div>' +
-      // پنل
       '<div class="' + CLS.card + ' p-5 md:p-6">' +
       '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="sliders-horizontal" class="w-4 h-4 text-brand-500"></i>' + t('panelPrefs') + '</h3>' +
       '<div class="grid grid-cols-2 gap-4">' +
@@ -1769,9 +1693,7 @@
     });
   }
 
-  // ═══════════════════════ ACTIONS ═══════════════════════
   const ACTIONS = {
-    // عمومی
     nav: (d) => { if (d.to !== S.route) go(d.to); },
     login: () => doLogin(),
     pwEye: () => { const i = $('pw'); i.type = i.type === 'password' ? 'text' : 'password'; },
@@ -1807,7 +1729,6 @@
       render();
     },
 
-    // کاربران
     usersSearch: () => loadUsers(true),
     usersRefresh: () => loadUsers(true),
     userPrev: () => { if (UP.stack.length) { UP.cursor = UP.stack.pop(); UP.page--; loadUsers(false); } },
@@ -1825,7 +1746,6 @@
     sendUserMsg: () => sendUserMsg(),
     userDetail: (d) => openUserDetail(d.id),
 
-    // ارسال پیام/نظرسنجی/عکس
     bcTab: (d) => { syncMenuSafe(); BC.tab = d.tab; renderBroadcast(); },
     bcAddRow: () => { BC.rows.push([{ text: '', url: '' }]); renderBcRows(); },
     bcDelRow: (d) => { BC.rows.splice(+d.r, 1); renderBcRows(); },
@@ -1849,13 +1769,11 @@
       loadHistory();
     },
 
-    // پشتیبانی
     supRefresh: () => loadTickets(),
     supOpen: (d) => openTicket(d.id),
     supReply: (d) => supReply(d.id),
     supClose: (d) => supClose(d.id),
 
-    // منو و زیرمنوها
     menuTab: (d) => { syncMenuSafe(); MU.tab = d.tab; MU.sub = null; renderMenuEditor(); },
     menuSave: async () => {
       syncMenuSafe();
@@ -1894,7 +1812,7 @@
       else ri = Math.min(Math.max(+$('bm-row').value, 0), rows.length - 1);
       if (rows[ri].length >= 8) return toast(t('invalidForm'), 'error');
       let col = parseInt($('bm-col').value, 10);
-      if (!Number.isInteger(col) || col < 1) col = rows[ri].length + 1; // پیش‌فرض: آخر ردیف
+      if (!Number.isInteger(col) || col < 1) col = rows[ri].length + 1;
       col = Math.min(col, rows[ri].length + 1);
       rows[ri].splice(col - 1, 0, { text, type, value });
       closeModal();
@@ -1913,7 +1831,6 @@
       renderMenuEditor();
     },
 
-    // زیرمنوها
     subNew: () => {
       syncMenuSafe();
       const ids = Object.keys(MU.menu.submenus || {});
@@ -1930,7 +1847,6 @@
       if (!(await confirmDlg(t('subDelConfirm'), t('remove')))) return;
       syncMenuSafe();
       delete MU.menu.submenus[d.id];
-      // حذف دکمه‌هایی که به این زیرمنو ارجاع دارند (از روت و همه زیرمنوها)
       const strip = (rows) => rows.map((r) => r.filter((b) => !(b.type === 'submenu' && b.value === d.id))).filter((r) => r.length);
       MU.menu.inlineButtons = strip(MU.menu.inlineButtons);
       for (const sm of Object.values(MU.menu.submenus)) sm.buttons = strip(sm.buttons || []);
@@ -1938,7 +1854,6 @@
       renderMenuEditor();
     },
 
-    // شبیه‌ساز
     simCmd: (d) => { syncMenuSafe(); simUser(d.cmd); setTimeout(() => simReply(d.cmd), 380); },
     simBtn: (d) => { syncMenuSafe(); simBtnAction(d); },
     pvSend: async () => {
@@ -1950,7 +1865,6 @@
       } catch (e) { toast(e.message, 'error'); }
     },
 
-    // تنظیمات
     saveGeneral: async () => {
       const body = {
         defaultLang: $('st-lang').value,
@@ -2017,10 +1931,8 @@
     },
   };
 
-  // sync بدون خطا (وقتی DOM آماده نیست)
   function syncMenuSafe() { try { syncMenuDom(); } catch (e) {} }
 
-  // دکمه pause/resume — تبدیل حالت
   const _origBcPause = ACTIONS.bcPause;
   ACTIONS.bcPause = async (...a) => {
     await _origBcPause(...a);
@@ -2047,7 +1959,6 @@
     } catch (e) { toast(e.message, 'error'); }
   };
 
-  // ═══════════════════════ رویدادها ═══════════════════════
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-act]');
     if (!el) return;
@@ -2084,22 +1995,18 @@
       if (u) u.classList.toggle('hidden', BC.target !== 'users');
       if (c) c.classList.toggle('hidden', BC.target !== 'chat');
     }
-    // حالت زبان: زبان پیش‌فرض فقط در حالت دوزبانه معنا دارد
     if (x.id === 'st-langmode') {
       const dw = $('deflang-wrap');
       if (dw) dw.classList.toggle('hidden', x.value !== 'both');
       return;
     }
-    // تغییر نوع در مودال «افزودن دکمه» → فیلد مقدار متناسب بازسازی می‌شود
     if (x.id === 'bm-type') {
       const vb = $('bm-value-box');
       if (vb) vb.innerHTML = modalValueEl(x.value);
       return;
     }
-    // تغییر نوع دکمه → همگام‌سازی و رندر مجدد (برای سوییچ input/select مقدار)
     if (x.classList && x.classList.contains('ib-type')) {
       syncMenuSafe();
-      // مقدار نوع را مستقیم در مدل بگذار (sync قبل از رندر)
       const bEl = x.closest('[data-b]');
       const rowEl = x.closest('[data-r]');
       if (bEl && rowEl && MU.menu) {
@@ -2117,7 +2024,6 @@
     else if (e.target.id === 'user-q') { e.preventDefault(); loadUsers(true); }
   });
 
-  // ═══════════════════════ روتر و بوت ═══════════════════════
   function go(route) {
     if (ROUTES.includes(route)) location.hash = '#/' + route;
   }
@@ -2125,23 +2031,22 @@
     clearTimers();
     const h = (location.hash || '').replace(/^#\/?/, '');
     const route = ROUTES.includes(h) ? h : 'dashboard';
-    const routeChanged = route !== S.route; // تغییر زبان/تم هم render را صدا می‌زند؛ فقط جابه‌جایی بخش باید به بالا اسکرول کند
+    const routeChanged = route !== S.route;
     S.route = route;
     if (!S.token) { renderLogin(); return; }
     renderShell();
-    // با تغییر بخش (نوار پایین موبایل / سایدبار / دکمه‌های میانبر) صفحه نرم به بالا اسکرول می‌شود
     if (routeChanged) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   window.addEventListener('hashchange', render);
 
   (async function boot() {
     if (S.token) {
-      try { await api('/auth/session'); } catch (e) { /* نشست نامعتبر → api خودش لاگین را رندر می‌کند */ }
+      try { await api('/auth/session'); } catch (e) {   }
     }
     if (!S.token) { renderLogin(); return; }
     render();
   })();
 
-  </script>
+</script>
 </body>
 </html>

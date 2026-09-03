@@ -1,39 +1,19 @@
-# ─────────────────────────────────────────────────────────────────────
-#  پنل مدیریت ربات تلگرام — Cloudflare Worker
-#  پیکربندی Wrangler — https://developers.cloudflare.com/workers/wrangler/configuration/
-# ─────────────────────────────────────────────────────────────────────
 
 name = "telegram-admin-panel"
 main = "src/index.js"
 compatibility_date = "2025-09-01"
 workers_dev = true
 
-# ── پایگاه‌داده KV ─────────────────────────────────────────────────
-# ابتدا namespace بسازید و id آن را جایگزین کنید:
-#   npx wrangler kv namespace create BOT_KV
 [[kv_namespaces]]
 binding = "BOT_KV"
 id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
 
-# ── فایل‌های استاتیک پنل (SPA) ─────────────────────────────────────
-# فایل‌های پوشه public به‌صورت استاتیک سرو می‌شوند؛
-# مسیرهای API و وب‌هوک ابتدا به Worker می‌رسند و بقیه مسیرها به index.html برمی‌گردند (رفتار SPA).
 [assets]
 directory = "./public"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = ["/api/*", "/telegram/*"]
 
-# ── متغیرهای عمومی (غیرمحرمانه) ────────────────────────────────────
 [vars]
 APP_VERSION = "1.0.0"
 
-# ── محرمانه‌ها — هرگز در این فایل ننویسید! ─────────────────────────
-#   npx wrangler secret put WEBHOOK_SECRET   ← مقدار هدر X-Telegram-Bot-Api-Secret-Token
-#   npx wrangler secret put BOT_TOKEN        ← (اختیاری) توکن ربات؛ از داخل پنل هم قابل تنظیم است
-#
-# 🔑 رمز ورود پنل نیازی به متغیر محیطی ندارد:
-#   • رمز پیش‌فرض: botpanel123
-#   • پس از ورود، از «تنظیمات ← امنیت و رمز عبور» تغییرش دهید (هش SHA-256 در KV ذخیره می‌شود)
-#   • فراموشی رمز: کلید «admin_auth» را در KV حذف کنید → به پیش‌فرض برمی‌گردد
-# برای توسعه لوکال، فایل «.dev.vars» را ویرایش کنید.

@@ -1,14 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════
-//  telegram.js — کلاینت Bot API تلگرام + منطق پردازش آپدیت‌ها (وب‌هوک)
-//
-//  قابلیت‌ها:
-//   ▪ دستورات: /start /help /lang /id /ping /support /end
-//   ▪ منوی چندلایه: دکمه‌های شیشه‌ای نوع url/callback/submenu/text
-//   ▪ نظرسنجی تعاملی با شمارش زنده آرا (poll:{id}:{i})
-//   ▪ پست عکس با لایک/دیسلایک (react:{id}:{l|d})
-//   ▪ گفتگوی پشتیبانی دوطرفه (تیکت در KV + پاسخ از پنل)
-//   ▪ قفل کانال: تشخیص عضویت با getChatMember (کش ۱۵ دقیقه)
-// ═══════════════════════════════════════════════════════════════════
 
 import {
   getMenu, getSettings, getUser, putUser, bumpStats, pushRecentUser,
@@ -16,7 +5,6 @@ import {
   getTicket, ticketAppendUser,
 } from './kv.js';
 
-// ── متن‌های داخلی ربات ─────────────────────────────────────────────
 const BOT_T = {
   fa: {
     chooseLang: '🌍 زبان خود را انتخاب کنید:',
@@ -77,7 +65,6 @@ export async function resolveToken(env) {
   return s.botToken || env.BOT_TOKEN || null;
 }
 
-// ── فراخوانی Bot API ──────────────────────────────────────────────
 export async function tgApi(token, method, payload = {}) {
   try {
     const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
@@ -99,7 +86,6 @@ export function withTimeout(promise, ms, fallback = null) {
   return Promise.race([promise, new Promise((r) => setTimeout(() => r(fallback), ms))]);
 }
 
-// ═══ زبان مؤثر ربات: تک‌زبانه (fa|en) یا دوزبانه (انتخاب کاربر) ═══
 export function effectiveLang(user, settings) {
   const mode = (settings && settings.botLangMode) || 'both';
   if (mode === 'fa') return 'fa';
@@ -108,7 +94,6 @@ export function effectiveLang(user, settings) {
   return BOT_T[l] ? l : 'fa';
 }
 
-// ردیف دکمه پشتیبانی خودکار — اگر فعال باشد و صفحه از قبل نداشته باشد
 function withSupport(rows, settings, lang) {
   const sb = settings && settings.supportButton;
   if (!sb || !sb.enabled) return rows || [];
@@ -118,8 +103,6 @@ function withSupport(rows, settings, lang) {
   return [...(rows || []), [{ text, type: 'callback', value: 'support:open' }]];
 }
 
-// ── ساخت مارک‌آپ‌ها ────────────────────────────────────────────────
-
 export function renderTpl(text = '', user = {}) {
   return String(text)
     .replace(/\{name\}/g, user.firstName || '')
@@ -127,7 +110,6 @@ export function renderTpl(text = '', user = {}) {
     .replace(/\{id\}/g, String(user.id || ''));
 }
 
-// تبدیل دکمه‌های پنل به مارک‌آپ تلگرام + دکمه بازگشت اختیاری
 export function pageMarkup(rows, { withBack = false, T = BOT_T.fa } = {}) {
   const kb = rows.map((row) =>
     row.map((b) => {
@@ -141,7 +123,6 @@ export function pageMarkup(rows, { withBack = false, T = BOT_T.fa } = {}) {
   return { inline_keyboard: kb };
 }
 
-// برچسب‌گذاری مختصات هر دکمه (برای پاپ‌آپ متن: txt:{src}:{r}:{c})
 function tagButtons(rows, src) {
   return rows.map((row, r) => row.map((b, c) => ({ ...b, _src: src, _r: r, _c: c })));
 }
@@ -155,9 +136,6 @@ export function sendToUser(token, chatId, text, extra = {}) {
   return tgApi(token, 'sendMessage', { chat_id: chatId, text, ...extra });
 }
 
-// ── نظرسنجی تعاملی ────────────────────────────────────────────────
-
-// متن نتایج با نمودار میله‌ای متنی — با هر رأی بروزرسانی می‌شود
 export function renderPollText(poll) {
   const total = pollTotals(poll);
   const lines = poll.opts.map((o) => {
@@ -184,8 +162,6 @@ export function sendPollToChat(token, chatId, poll, T = BOT_T.fa) {
   });
 }
 
-// ── پست عکس با لایک/دیسلایک ───────────────────────────────────────
-
 export function reactMarkup(post) {
   return {
     inline_keyboard: [[
@@ -205,7 +181,6 @@ export function sendPostToChat(token, chatId, post, parseMode) {
   });
 }
 
-// ── ثبت/به‌روزرسانی کاربر ──────────────────────────────────────────
 export async function touchUser(env, from) {
   const now = Date.now();
   const existing = await getUser(env, from.id);
@@ -242,9 +217,6 @@ export async function touchUser(env, from) {
   return { user: existing, isNew: false };
 }
 
-// ═══════════════ قفل کانال (عضویت اجباری) ═══════════════
-
-// آدرس عضویت: از url سفارشی یا از آیدی کانال ساخته می‌شود
 export function channelJoinUrl(rc) {
   if (rc.url && /^https?:\/\//i.test(rc.url)) return rc.url;
   const id = String(rc.chatId || '');
@@ -253,7 +225,6 @@ export function channelJoinUrl(rc) {
   return id ? `https://t.me/${id}` : '';
 }
 
-// بررسی عضویت کاربر در کانال قفل‌شده (کش ۱۵ دقیقه؛ خطای API = عبور، تا ربات قفل نشود)
 export async function channelGate(env, token, user, settings) {
   const rc = settings.requiredChannel;
   if (!rc || !rc.enabled || !rc.chatId) return { ok: true };
@@ -267,7 +238,6 @@ export async function channelGate(env, token, user, settings) {
     6000, null
   );
   if (!res || !res.ok) {
-    // خطای API (توکن/ادمین‌نبودن ربات/شبکه) — عبور برای جلوگیری از قفل‌شدن کامل ربات
     console.warn('[channel-lock] membership check failed:', res && res.description);
     return { ok: true };
   }
@@ -290,8 +260,6 @@ async function sendLock(token, chatId, url, lang) {
   return sendToUser(token, chatId, T.lock, { reply_markup: lockKeyboard(url, T) });
 }
 
-// ═══════════════ پردازش آپدیت وب‌هوک ═══════════════
-
 export async function handleUpdate(env, update) {
   try {
     if (update.message) return await onMessage(env, update.message);
@@ -306,27 +274,25 @@ async function onMessage(env, msg) {
   if (!from || from.is_bot) return;
 
   const token = await resolveToken(env);
-  if (!token) return; // ربات هنوز پیکربندی نشده
+  if (!token) return;
 
   const settings = await getSettings(env);
   const { user } = await touchUser(env, from);
-  if (user.banned) return; // کاربر مسدود — بی‌خیال
+  if (user.banned) return;
 
   const text = String(msg.text || '').trim();
   const chatId = msg.chat.id;
 
-  // ── قفل کانال: قبل از هر کاری عضویت بررسی می‌شود ──────
   const gate = await channelGate(env, token, user, settings);
   if (!gate.ok) return await sendLock(token, chatId, gate.url, user.lang || settings.defaultLang);
 
-  bumpStats(env, { messages: 1 }); // fire-and-forget
+  bumpStats(env, { messages: 1 });
   if (!text) return;
 
   const lang = effectiveLang(user, settings);
   const T = BOT_T[lang];
   const menu = await getMenu(env);
 
-  // ── حالت پشتیبانی: همه پیام‌های متنی کاربر به تیکت می‌روند ──
   const isCmd = text.startsWith('/');
   if (user.supportOpen && !isCmd) {
     await ticketAppendUser(env, user, text);
@@ -337,7 +303,7 @@ async function onMessage(env, msg) {
     const cmd = text.split(/\s+/)[0].split('@')[0].toLowerCase();
     switch (cmd) {
       case '/start': {
-        user.supportOpen = false; // شروع تازه = خروج از حالت پشتیبانی
+        user.supportOpen = false;
         await putUser(env, user);
         return await sendStart(token, chatId, user, menu, lang, settings);
       }
@@ -346,7 +312,6 @@ async function onMessage(env, msg) {
           disable_web_page_preview: true,
         });
       case '/lang':
-        // فقط در حالت دوزبانه؛ در حالت تک‌زبانه اطلاع‌رسانی می‌شود
         if ((settings.botLangMode || 'both') !== 'both') return sendToUser(token, chatId, T.singleLang);
         return await sendToUser(token, chatId, T.chooseLang, { reply_markup: langKeyboard() });
       case '/id':
@@ -358,7 +323,7 @@ async function onMessage(env, msg) {
       case '/support': {
         user.supportOpen = true;
         await putUser(env, user);
-        await getTicket(env, user.id); // تیکت قبلی هم هست — مشکلی نیست
+        await getTicket(env, user.id);
         return sendToUser(token, chatId, T.supportIntro);
       }
       case '/end': {
@@ -393,7 +358,6 @@ function langKeyboard() {
   };
 }
 
-// نمایش یک صفحه منو (روت یا زیرمنو) — با editMessageText
 async function showPage(token, chatId, messageId, menu, pageId, lang, settings) {
   const T = BOT_T[lang] || BOT_T.fa;
   let text, rows, src, withBack = false;
@@ -433,14 +397,13 @@ async function onCallback(env, cb) {
       chat_id: chatId, message_id: messageId, text, reply_markup, disable_web_page_preview: true,
     });
 
-  // ── «عضو شدم» — قابل استفاده حتی قبل از رفع قفل ──────
   if (data === 'chan:check') {
     const settings = await getSettings(env);
     const gate = await channelGate(env, token, user, settings);
     const lang = user.lang || settings.defaultLang;
     const T = BOT_T[lang] || BOT_T.fa;
     if (gate.ok) {
-      user.supportOpen = user.supportOpen; // بدون تغییر
+      user.supportOpen = user.supportOpen;
       await tgApi(token, 'editMessageText', {
         chat_id: chatId, message_id: messageId, text: T.lockOk,
       }).catch(() => {});
@@ -449,7 +412,6 @@ async function onCallback(env, cb) {
     return answer(T.lockNo, true);
   }
 
-  // ── قفل کانال برای بقیه کال‌بک‌ها ──────
   const settings = await getSettings(env);
   const gate = await channelGate(env, token, user, settings);
   if (!gate.ok) {
@@ -461,7 +423,6 @@ async function onCallback(env, cb) {
   const T = BOT_T[lang];
   const menu = await getMenu(env);
 
-  // ── تغییر زبان (فقط حالت دوزبانه) ────────────────────────
   if (data.startsWith('setlang:') && (settings.botLangMode || 'both') !== 'both') {
     return answer(BOT_T[effectiveLang(user, settings)].singleLang, true);
   }
@@ -483,23 +444,20 @@ async function onCallback(env, cb) {
     return answer(TT.langSet);
   }
 
-  // ── گشتن در منوهای چندلایه: sub:{id} ─────────────────────
   if (data.startsWith('sub:')) {
     const pageId = data.slice(4);
     await showPage(token, chatId, messageId, menu, pageId === 'root' ? 'root' : pageId, lang, settings);
     return answer();
   }
 
-  // ── پاپ‌آپ متن: txt:{src}:{r}:{c} ───────────────────────
   if (data.startsWith('txt:')) {
     const [, src, r, c] = data.split(':');
     const rows = src === 'root' ? menu.inlineButtons : ((menu.submenus || {})[src] || {}).buttons || [];
     const btn = (rows[+r] || [])[+c];
     const popup = btn && btn.type === 'text' ? String(btn.value).slice(0, 200) : '…';
-    return answer(popup, true); // به‌صورت alert نمایش داده می‌شود
+    return answer(popup, true);
   }
 
-  // ── شروع گفتگوی پشتیبانی از دکمه شیشه‌ای ───────────────
   if (data === 'support:open') {
     user.supportOpen = true;
     await putUser(env, user);
@@ -507,12 +465,11 @@ async function onCallback(env, cb) {
     return answer();
   }
 
-  // ── رأی به نظرسنجی: poll:{id}:{i|r} ─────────────────────
   if (data.startsWith('poll:')) {
     const [, id, act] = data.split(':');
     const poll = await getPoll(env, id);
     if (!poll) return answer(T.voteGone, true);
-    if (act === 'r') { // فقط بروزرسانی نتایج
+    if (act === 'r') {
       await edit(renderPollText(poll), pollKeyboard(poll, T));
       return answer(T.voteRefresh);
     }
@@ -524,14 +481,12 @@ async function onCallback(env, cb) {
     poll.opts[i].n = (poll.opts[i].n || 0) + 1;
     poll.voters = poll.voters || {};
     poll.voters[user.id] = i;
-    // جلوگیری از بی‌نهایت بزرگ‌شدن رکورد (آرا شمرده‌شده معتبر می‌مانند)
     if (Object.keys(poll.voters).length > 4000) poll.voters = {};
     await putPoll(env, poll);
     await edit(renderPollText(poll), pollKeyboard(poll, T));
     return answer(prev === undefined ? T.voteDone : T.voteMoved);
   }
 
-  // ── لایک/دیسلایک پست عکس: react:{id}:{l|d} ──────────────
   if (data.startsWith('react:')) {
     const [, id, act] = data.split(':');
     const post = await getPost(env, id);
@@ -563,6 +518,5 @@ async function onCallback(env, cb) {
     return answer(T.reactDone);
   }
 
-  // دکمه‌های callback سفارشی — منطق خود را اینجا اضافه کنید
   return answer();
 }

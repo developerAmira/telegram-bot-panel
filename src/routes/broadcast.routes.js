@@ -1,19 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════
-//  routes/broadcast.routes.js — موتور ارسال پیام / نظرسنجی / عکس
-//
-//  انواع پیام (kind):
-//   text → متن (+ دکمه‌های URL)
-//   poll → نظرسنجی تعاملی با شمارش زنده آرا
-//   photo→ عکس با کپشن + دکمه‌های 👍/👎
-//
-//  مخاطبان (target):
-//   all / active7d / active30d → جاب دسته‌ای (tick) برای همه کاربران
-//   users  → ارسال فوری به حداکثر ۵۰ آیدی خاص
-//   chat   → ارسال فوری به یک چت (کانال/گروه/کاربر) — مثلاً -100123…
-//
-//  POST /            → ساخت ارسال        POST /:id/tick   → دسته بعدی
-//  POST /:id/pause|resume|stop            GET  /           → تاریخچه
-// ═══════════════════════════════════════════════════════════════════
 
 import { Hono } from 'hono';
 import { requireAuth } from '../auth.js';
@@ -28,7 +12,6 @@ r.use('*', requireAuth);
 
 const fail = (c, error, status = 400) => c.json({ ok: false, error }, status);
 
-// ── اعتبارسنجی دکمه‌های URL ────────────────────────────────────────
 function sanitizeUrlButtons(input) {
   if (!Array.isArray(input)) return [];
   const rows = [];
@@ -47,7 +30,6 @@ function sanitizeUrlButtons(input) {
   return rows;
 }
 
-// ارسال یک پیام از هر نوع به یک چت — قلب مشترک ارسال فوری و دسته‌ای
 async function deliverOne(token, kind, payload, chatId) {
   if (kind === 'poll') return sendPollToChat(token, chatId, payload.poll);
   if (kind === 'photo') return sendPostToChat(token, chatId, payload.post, payload.parseMode || undefined);
@@ -60,7 +42,6 @@ async function deliverOne(token, kind, payload, chatId) {
   });
 }
 
-// ── ساخت ارسال (فوری یا جاب همگانی) ────────────────────────────────
 r.post('/', async (c) => {
   const env = c.env;
   const body = await c.req.json().catch(() => ({}));
@@ -72,7 +53,6 @@ r.post('/', async (c) => {
   const token = await resolveToken(env);
   if (!token) return fail(c, 'token_missing');
 
-  // ── اعتبارسنجی و ساخت payload بر اساس نوع ──
   const payload = { kind, parseMode };
   if (kind === 'text') {
     const text = String(body.text || '').trim();
@@ -97,11 +77,9 @@ r.post('/', async (c) => {
     payload.post = { id, photo, caption, likes: 0, dislikes: 0, voters: {}, createdAt: Date.now() };
   }
 
-  // ── ثبت رکورد نظرسنجی/پست (برای شمارش زنده) ──
   if (kind === 'poll') { await putJson(env, K.POLL(payload.poll.id), payload.poll); await pushEngIndex(env, 'poll', payload.poll.id); }
   if (kind === 'photo') { await putJson(env, K.POST(payload.post.id), payload.post); await pushEngIndex(env, 'post', payload.post.id); }
 
-  // ── هدف: کاربران خاص (فوری، حداکثر ۵۰) ──
   if (target === 'users') {
     const ids = (Array.isArray(body.userIds) ? body.userIds : String(body.userIds || '').split(/[,،\s]+/))
       .map((x) => Number(String(x).trim())).filter((n) => Number.isInteger(n) && n > 0).slice(0, 50);
@@ -119,7 +97,6 @@ r.post('/', async (c) => {
     return c.json({ ok: true, data: { mode: 'direct', results, sent, failed: results.length - sent } });
   }
 
-  // ── هدف: کانال/گروه/چت خاص (فوری) ──
   if (target === 'chat') {
     const chatId = Number(body.chatId);
     if (!Number.isInteger(chatId) || chatId === 0) return fail(c, 'invalid_chat_id');
@@ -132,7 +109,6 @@ r.post('/', async (c) => {
     });
   }
 
-  // ── هدف همگانی → جاب دسته‌ای (tick از پنل) ──
   const withinDays = target === 'all' ? 0 : Number(target.replace('active', '').replace('d', ''));
   const ids = await collectTargetIds(env, withinDays);
   if (!ids.length) return fail(c, 'no_targets');
@@ -162,7 +138,6 @@ r.post('/', async (c) => {
   return c.json({ ok: true, data: { job: { ...job, targets: undefined } } });
 });
 
-// ── ارسال دسته بعدی (قلب موتور همگانی) ────────────────────────────
 r.post('/:id/tick', async (c) => {
   const env = c.env;
   const id = c.req.param('id');
@@ -190,7 +165,6 @@ r.post('/:id/tick', async (c) => {
   job.status = 'ticking';
   await putJson(env, K.BROADCAST(id), job);
 
-  // برای نظرسنجی/عکس، آخرین وضعیت رکورد را بگیر (شمارنده‌ها زنده‌اند)
   let payload = { kind: job.kind, parseMode: job.parseMode, text: job.text, buttons: job.buttons };
   if (job.kind === 'poll' && job.pollId) payload.poll = await getJson(env, K.POLL(job.pollId));
   if (job.kind === 'photo' && job.photoUrl) payload.post = await getJson(env, K.POST(job.postId));
@@ -223,7 +197,6 @@ r.post('/:id/tick', async (c) => {
   return c.json({ ok: true, data: { job: { ...job, targets: undefined } } });
 });
 
-// علامت‌گذاری کاربری که ربات را بلاک کرده (خطای 403 تلگرام)
 async function markBlockedBot(env, uid) {
   const user = await getUser(env, uid);
   if (user && !user.blockedBot) {
@@ -232,7 +205,6 @@ async function markBlockedBot(env, uid) {
   }
 }
 
-// ── کنترل جاب ──────────────────────────────────────────────────────
 const TRANSITIONS = {
   pause: { from: ['running', 'ticking'], to: 'paused' },
   resume: { from: ['paused'], to: 'running' },
@@ -253,7 +225,6 @@ for (const [action, tr] of Object.entries(TRANSITIONS)) {
   });
 }
 
-// ── وضعیت و تاریخچه ────────────────────────────────────────────────
 r.get('/', async (c) =>
   c.json({ ok: true, data: { jobs: await getRecentBroadcasts(c.env) } })
 );

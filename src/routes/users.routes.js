@@ -1,11 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════
-//  routes/users.routes.js — مدیریت کاربران ربات
-//  GET   /api/users?cursor&limit&q → لیست صفحه‌بندی‌شده / جستجو
-//  GET   /api/users/:id            → رکورد کامل کاربر
-//  POST  /api/users/:id/ban        → مسدودسازی {reason?}
-//  POST  /api/users/:id/unban      → آزادسازی
-//  POST  /api/users/:id/message    → پیام مستقیم {text, parseMode?}
-// ═══════════════════════════════════════════════════════════════════
 
 import { Hono } from 'hono';
 import { requireAuth } from '../auth.js';
@@ -17,7 +9,6 @@ r.use('*', requireAuth);
 
 const fail = (c, error, status = 400) => c.json({ ok: false, error }, status);
 
-// ── لیست کاربران (صفحه‌بندی با cursor بومی KV) ──────────────────────
 r.get('/', async (c) => {
   const limit = Math.min(Math.max(Number(c.req.query('limit')) || 20, 5), 100);
   const q = (c.req.query('q') || '').trim();
@@ -31,14 +22,12 @@ r.get('/', async (c) => {
   return c.json({ ok: true, data: { ...page, search: false } });
 });
 
-// ── رکورد کامل یک کاربر ────────────────────────────────────────────
 r.get('/:id', async (c) => {
   const user = await getUser(c.env, c.req.param('id'));
   if (!user) return fail(c, 'user_not_found', 404);
   return c.json({ ok: true, data: { user } });
 });
 
-// ── مسدودسازی ──────────────────────────────────────────────────────
 r.post('/:id/ban', async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const user = await getUser(c.env, c.req.param('id'));
@@ -54,7 +43,6 @@ r.post('/:id/ban', async (c) => {
   return c.json({ ok: true, data: { user } });
 });
 
-// ── آزادسازی ───────────────────────────────────────────────────────
 r.post('/:id/unban', async (c) => {
   const user = await getUser(c.env, c.req.param('id'));
   if (!user) return fail(c, 'user_not_found', 404);
@@ -69,7 +57,6 @@ r.post('/:id/unban', async (c) => {
   return c.json({ ok: true, data: { user } });
 });
 
-// ── ارسال پیام مستقیم به یک کاربر ──────────────────────────────────
 r.post('/:id/message', async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const text = String(body.text || '').trim();

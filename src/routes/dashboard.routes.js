@@ -1,8 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════
-//  routes/dashboard.routes.js — آمار داشبورد
-//  GET /api/dashboard/stats → شمارنده‌ها + کاربران اخیر + وضعیت وب‌هوک
-//  (اعتبار لحظه‌ای ورکر از طریق /api/health عمومی اندازه‌گیری می‌شود)
-// ═══════════════════════════════════════════════════════════════════
 
 import { Hono } from 'hono';
 import { requireAuth } from '../auth.js';
@@ -17,7 +12,6 @@ r.get('/stats', async (c) => {
 
   const [stats, recentUsers] = await Promise.all([getStats(env), getRecentUsers(env)]);
 
-  // وضعیت وب‌هوک ربات از تلگرام (با تایم‌اوت تا داشبورد قفل نشود)
   let webhook = { configured: false };
   const token = await resolveToken(env);
   if (token) {

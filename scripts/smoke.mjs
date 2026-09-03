@@ -1,13 +1,6 @@
-// ═══════════════════════════════════════════════════════════════════
-//  scripts/smoke.mjs — تست دود (Smoke Test)
-//  اپ Worker را با یک KV درون‌حافظه‌ای در Node اجرا و مسیرهای اصلی
-//  API + وب‌هوک را تست می‌کند:  npm run smoke
-//  (نیازی به wrangler یا اتصال واقعی تلگرام ندارد)
-// ═══════════════════════════════════════════════════════════════════
 
 import worker from '../src/index.js';
 
-// ── شبیه‌ساز KV (با پشتیبانی از metadata و cursor) ────────────────
 function mockKV() {
   const store = new Map();
   return {
@@ -78,11 +71,9 @@ console.log('\n── 1) سلامت و امنیت ──');
 console.log('\n── 2) ورود با رمز پیش‌فرض + محدودیت نرخ ──');
 let TOKEN = '';
 {
-  // وضعیت رمز پیش‌فرض (عمومی)
   let r = await json(await call('GET', '/api/auth/default-status'));
   ok('رمز پیش‌فرض در ابتدا فعال است', r.status === 200 && r.body.data.defaultActive === true);
 
-  // ورود با رمز پیش‌فرض داخلی (بدون هیچ متغیر محیطی!)
   r = await json(await call('POST', '/api/auth/login', { body: { password: 'botpanel123' } }));
   ok('ورود با رمز پیش‌فرض → توکن', r.status === 200 && !!r.body.data.token);
   TOKEN = r.body.data?.token || '';
@@ -90,14 +81,11 @@ let TOKEN = '';
   r = await json(await call('GET', '/api/auth/session', { token: TOKEN }));
   ok('اعتبارسنجی نشست', r.status === 200 && r.body.data.valid === true);
 
-  // ۵ تلاش ناموفق → قفل
   for (let i = 0; i < 5; i++) await call('POST', '/api/auth/login', { body: { password: 'nope' } });
   r = await json(await call('POST', '/api/auth/login', { body: { password: 'nope' } }));
   ok('محدودیت نرخ ورود → 429', r.status === 429 && r.body.error === 'rate_limited');
-  // ورود درست باید همچنین ممکن باشد؟ نه — پنجره قفل است؛ ولی کلید پس از موفقیت پاک می‌شود:
   r = await json(await call('POST', '/api/auth/login', { body: { password: 'botpanel123' } }));
   ok('رمز درست در حالت قفل → هنوز 429 (اولویت ضد بروت‌فورس)', r.status === 429);
-  // شبیه IP جدید
   const req = new Request('https://panel.example.com/api/auth/login', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'cf-connecting-ip': '2.2.2.2' },
@@ -122,7 +110,6 @@ console.log('\n── 3) تنظیمات و منو ──');
   } }));
   ok('PUT /menu', r.status === 200 && r.body.data.menu.welcome.fa === 'سلام {name}');
 
-  // دکمه با URL نامعتبر باید حذف شود
   r = await json(await call('PUT', '/api/menu', { token: TOKEN, body: {
     inlineButtons: [[{ text: 'بد', type: 'url', value: 'javascript:alert(1)' }]],
   } }));
@@ -146,7 +133,7 @@ console.log('\n── 4) وب‌هوک تلگرام ──');
 
   r = await json(await call('POST', '/telegram/webhook', { body: update, headers: { 'x-telegram-bot-api-secret-token': 'whsec-test' } }));
   ok('وب‌هوک معتبر → 200', r.status === 200 && r.body.ok === true);
-  await new Promise((res) => setTimeout(res, 800)); // منتظر waitUntil
+  await new Promise((res) => setTimeout(res, 800));
 
   r = await json(await call('GET', '/api/users?q=ali', { token: TOKEN }));
   ok('کاربر /start ثبت شد (جستجو)', r.status === 200 && r.body.data.rows.some((u) => u.id === '42'));
@@ -168,7 +155,6 @@ console.log('\n── 5) مدیریت کاربران ──');
   ok('آزادسازی', r.status === 200 && r.body.data.user.banned === false);
 
   r = await json(await call('POST', '/api/users/42/message', { token: TOKEN, body: { text: 'hello' } }));
-  // توکن فیک است → تلگرام 401 می‌دهد → باید خطای توضیح‌دار برگردد
   ok('پیام مستقیم با توکن فیک → خطای توضیح‌دار', r.status === 400 && typeof r.body.error === 'string');
 }
 
@@ -186,7 +172,6 @@ console.log('\n── 6) ارسال همگانی (چرخه tick) ──');
   r = await json(await call('GET', '/api/broadcast', { token: TOKEN }));
   ok('تاریخچه', r.status === 200 && r.body.data.jobs.length === 1);
 
-  // کاربر بدون فعالیت → هدف active7d خالی
   r = await json(await call('POST', '/api/broadcast', { token: TOKEN, body: { text: 'x', target: 'active30d' } }));
   ok('هدف‌گیری فعال‌ها → no_targets (توکن فیک = کاربر بلاک‌نشده ولی lastSeen تازه است؟)', r.status === 200 || r.body.error === 'no_targets');
 }
@@ -224,7 +209,6 @@ console.log('\n── 8) زیرمنوها و دکمه‌های چندلایه �
   ok('دکمه submenu نگه داشته شد', menu.inlineButtons[0][0].type === 'submenu');
   ok('دکمه text نگه داشته شد', menu.inlineButtons[1][0].type === 'text');
 
-  // ارجاع به زیرمنوی ناموجود باید حذف شود
   r = await json(await call('PUT', '/api/menu', { token: TOKEN, body: {
     inlineButtons: [[{ text: 'خراب', type: 'submenu', value: 'ghost' }]],
     submenus: { shop: { title: 'a', text: 'b', buttons: [] } },
@@ -235,7 +219,6 @@ console.log('\n── 8) زیرمنوها و دکمه‌های چندلایه �
 console.log('\n── 9) نظرسنجی تعاملی + شمارش آرا ──');
 let POLL_ID = '';
 {
-  // ساخت نظرسنجی برای یک کاربر خاص (ارسال به تلگرام فیک می‌شکد ولی رکورد ساخته می‌شود)
   let r = await json(await call('POST', '/api/broadcast', { token: TOKEN, body: {
     kind: 'poll', target: 'users', userIds: '42',
     poll: { question: 'رنگ محبوب؟', options: ['قرمز', 'آبی', 'سبز'] },
@@ -245,7 +228,6 @@ let POLL_ID = '';
   ok('نظرسنجی در لیست تعامل‌ها', r.body.data.polls.some((p) => p.q === 'رنگ محبوب؟'));
   POLL_ID = (r.body.data.polls.find((p) => p.q === 'رنگ محبوب؟') || {}).id || '';
 
-  // رأی از طریق وب‌هوک (کال‌بک) — گزینه ۱
   await call('POST', '/telegram/webhook', { body: {
     update_id: 500, callback_query: {
       id: 'cb1', from: { id: 42, first_name: 'Ali' },
@@ -257,7 +239,6 @@ let POLL_ID = '';
   let poll = r.body.data.polls.find((p) => p.id === POLL_ID);
   ok('رأی اول شمرده شد', poll && poll.opts[1].n === 1 && poll.total === 1);
 
-  // تغییر رأی به گزینه ۲
   await call('POST', '/telegram/webhook', { body: {
     update_id: 501, callback_query: {
       id: 'cb2', from: { id: 42, first_name: 'Ali' },
@@ -269,7 +250,6 @@ let POLL_ID = '';
   poll = r.body.data.polls.find((p) => p.id === POLL_ID);
   ok('تغییر رأی (کاهش قبلی/افزایش جدید)', poll && poll.opts[1].n === 0 && poll.opts[2].n === 1);
 
-  // رأی کاربر دوم (اول باید به‌عنوان کاربر ثبت شود — کاربر ناشناس رد می‌شود)
   await call('POST', '/telegram/webhook', { body: {
     update_id: 499, message: { message_id: 19, text: '/start', chat: { id: 43 },
       from: { id: 43, first_name: 'Reza' } },
@@ -300,7 +280,6 @@ let POST_ID = '';
   ok('پست در لیست تعامل‌ها', !!post);
   POST_ID = post ? post.id : '';
 
-  // لایک → دیسلایک → برداشتن
   const react = async (uid, act) => {
     await call('POST', '/telegram/webhook', { body: {
       update_id: 600 + uid, callback_query: {
@@ -312,11 +291,11 @@ let POST_ID = '';
   };
   await react(42, 'l');
   await react(43, 'l');
-  await react(43, 'd'); // تغییر به دیسلایک
+  await react(43, 'd');
   r = await json(await call('GET', '/api/engagement', { token: TOKEN }));
   const p2 = r.body.data.posts.find((p) => p.id === POST_ID);
   ok('لایک/دیسلایک شمرده شد (l=1, d=1)', p2 && p2.likes === 1 && p2.dislikes === 1);
-  await react(42, 'l'); // برداشتن لایک
+  await react(42, 'l');
   r = await json(await call('GET', '/api/engagement', { token: TOKEN }));
   const p3 = r.body.data.posts.find((p) => p.id === POST_ID);
   ok('برداشتن رأی (toggle)', p3 && p3.likes === 0);
@@ -324,13 +303,11 @@ let POST_ID = '';
 
 console.log('\n── 11) پشتیبانی دوطرفه ──');
 {
-  // کاربر /support می‌فرستد
   await call('POST', '/telegram/webhook', { body: {
     update_id: 700, message: { message_id: 20, text: '/support', chat: { id: 555 },
       from: { id: 555, first_name: 'Cust', username: 'cust' } },
   }, headers: { 'x-telegram-bot-api-secret-token': 'whsec-test' } });
   await new Promise((res) => setTimeout(res, 400));
-  // پیام متنی → باید به تیکت برود
   await call('POST', '/telegram/webhook', { body: {
     update_id: 701, message: { message_id: 21, text: 'سلام، مشکل دارم!', chat: { id: 555 },
       from: { id: 555, first_name: 'Cust' } },
@@ -359,7 +336,6 @@ console.log('\n── 12) قفل کانال ──');
   } }));
   ok('فعال‌سازی قفل کانال', r.status === 200 && r.body.data.settings.requiredChannel.enabled === true);
 
-  // کاربر جدید با توکن فیک → بررسی عضویت خطا می‌دهد → fail-open → کاربر عادی پردازش می‌شود
   await call('POST', '/telegram/webhook', { body: {
     update_id: 800, message: { message_id: 30, text: '/start', chat: { id: 888 },
       from: { id: 888, first_name: 'Locked' } },
@@ -368,7 +344,6 @@ console.log('\n── 12) قفل کانال ──');
   r = await json(await call('GET', '/api/users?q=888', { token: TOKEN }));
   ok('fail-open: با خطای API عضویت، کاربر رد نشد', r.body.data.rows.length === 1);
 
-  // خاموش کردن قفل برای بقیه تست‌ها
   await call('PUT', '/api/settings', { token: TOKEN, body: { requiredChannel: { enabled: false, chatId: '', url: '' } } });
 }
 
@@ -384,41 +359,33 @@ console.log('\n── 13) زبان ربات و دکمه پشتیبانی همی�
   r = await json(await call('GET', '/api/settings', { token: TOKEN }));
   ok('خواندن تنظیمات جدید', r.body.data.settings.botLangMode === 'fa' && r.body.data.settings.supportButton.enabled === true);
 
-  // مقدار نامعتبر رد می‌شود
   r = await json(await call('PUT', '/api/settings', { token: TOKEN, body: { botLangMode: 'klingon' } }));
   ok('حالت زبان نامعتبر نادیده گرفته شد', r.body.data.settings.botLangMode === 'fa');
 
-  // بازگشت به دوزبانه
   await call('PUT', '/api/settings', { token: TOKEN, body: { botLangMode: 'both' } });
 }
 
 console.log('\n── 14) تغییر رمز عبور از پنل ──');
 {
-  // رمز فعلی غلط → رد
   let r = await json(await call('POST', '/api/auth/change-password', { token: TOKEN, body: { currentPassword: 'wrong', newPassword: 'test-new-pass-456' } }));
   ok('رمز فعلی غلط → wrong_password', r.body.error === 'wrong_password');
 
-  // رمز جدید کوتاه → رد
   r = await json(await call('POST', '/api/auth/change-password', { token: TOKEN, body: { currentPassword: 'botpanel123', newPassword: 'short' } }));
   ok('رمز جدید کوتاه → invalid_password', r.body.error === 'invalid_password');
 
-  // تغییر موفق
   r = await json(await call('POST', '/api/auth/change-password', { token: TOKEN, body: { currentPassword: 'botpanel123', newPassword: 'test-new-pass-456' } }));
   ok('تغییر رمز موفق', r.status === 200 && r.body.ok === true);
 
-  // ورود با رمز قدیمی → رد / با رمز جدید → ok (از IP تازه، چون IP اصلی در بخش ۲ قفل ضد بروت‌فورس است)
   r = await json(await call('POST', '/api/auth/login', { body: { password: 'botpanel123' }, ip: '9.9.9.9' }));
   ok('ورود با رمز قدیمی → 401', r.status === 401);
   r = await json(await call('POST', '/api/auth/login', { body: { password: 'test-new-pass-456' }, ip: '9.9.9.9' }));
   ok('ورود با رمز جدید → 200', r.status === 200);
 
-  // نشست فعلی معتبر می‌ماند، پیش‌فرض غیرفعال است
   r = await json(await call('GET', '/api/auth/session', { token: TOKEN }));
   ok('نشست فعلی پس از تغییر رمز معتبر ماند', r.status === 200);
   r = await json(await call('GET', '/api/auth/default-status'));
   ok('رمز پیش‌فرض غیرفعال شد', r.body.data.defaultActive === false);
 
-  // برگرداندن به پیش‌فرض برای تکرارپذیری تست‌ها
   r = await json(await call('POST', '/api/auth/change-password', { token: TOKEN, body: { currentPassword: 'test-new-pass-456', newPassword: 'botpanel123' } }));
   ok('بازگشت به رمز پیش‌فرض', r.status === 200);
   r = await json(await call('POST', '/api/auth/login', { body: { password: 'botpanel123' }, ip: '9.9.9.9' }));

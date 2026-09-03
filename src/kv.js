@@ -1,22 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════
-//  kv.js — لایه دسترسی به داده (Data Access Layer) روی Cloudflare KV
-//
-//  طرح کلیدها (Key Schema):
-//   settings             تنظیمات ربات + قفل کانال (JSON)
-//   menu                 منو/کیبوردها + زیرمنوهای چندلایه (JSON)
-//   stats                شمارنده‌های آماری (JSON، تقریبی)
-//   recent_users         ۱۰ کاربر جدید (JSON آرایه)
-//   user:{telegram_id}   رکورد کاربر (JSON + metadata فشرده)
-//   session:{sha256}     نشست ادمین (با TTL)
-//   rl:{ip}              شمارنده محدودیت تلاش ورود (با TTL)
-//   broadcast:{id}       جاب ارسال (متن/نظرسنجی/عکس) (JSON)
-//   broadcast:index      ۲۰ جاب اخیر (JSON آرایه)
-//   poll:{id}            نظرسنجی تعاملی + آرا (JSON)
-//   post:{id}            پست عکس با لایک/دیسلایک + واکنش‌ها (JSON)
-//   eng:index            ایندکس نظرسنجی‌ها/پست‌های اخیر (JSON آرایه)
-//   ticket:{userId}      تیکت پشتیبانی کاربر + پیام‌ها (JSON)
-//   tickets:index        خلاصه تیکت‌ها برای صندوق پنل (JSON آرایه)
-// ═══════════════════════════════════════════════════════════════════
 
 export const K = {
   SETTINGS: 'settings',
@@ -37,8 +18,6 @@ export const K = {
   TICKETS_INDEX: 'tickets:index',
 };
 
-// ── مقادیر پیش‌فرض منو (قابل ویرایش از پنل) ─────────────────────────
-// انواع دکمه شیشه‌ای: url (لینک) | callback (کال‌بک) | submenu (زیرمنو) | text (پاپ‌آپ متن)
 export const DEFAULT_MENU = {
   welcome: {
     fa: 'سلام {name} عزیز 👋\nبه ربات ما خوش آمدید!\nاز دکمه‌های زیر استفاده کنید.',
@@ -48,16 +27,13 @@ export const DEFAULT_MENU = {
     fa: '🤖 راهنمای ربات\n\n/start — شروع و نمایش منو\n/help — نمایش همین راهنما\n/lang — تغییر زبان\n/id — نمایش آیدی عددی شما\n/support — پیام به پشتیبانی\n/end — پایان گفتگو با پشتیبانی\n/ping — بررسی فعال بودن',
     en: '🤖 Bot Help\n\n/start — Start & show the menu\n/help — Show this help\n/lang — Change language\n/id — Show your numeric ID\n/support — Message the support team\n/end — End the support chat\n/ping — Check the bot is alive',
   },
-  // کیبورد اصلی (Reply Keyboard) — آرایه‌ای از ردیف‌ها
   mainKeyboard: [['/start', '/help'], ['/lang', '/id'], ['/support']],
-  // دکمه‌های شیشه‌ای (Inline) زیر پیام خوش‌آمد
   inlineButtons: [
     [{ text: '🛍 فروشگاه | Shop', type: 'submenu', value: 'shop' }],
     [{ text: '🌐 وب‌سایت | Website', type: 'url', value: 'https://example.com' }],
     [{ text: '🌍 تغییر زبان | Language', type: 'callback', value: 'setlang:menu' }],
     [{ text: '🛡 پشتیبانی | Support', type: 'callback', value: 'support:open' }],
   ],
-  // ── زیرمنوهای چندلایه — هر زیرمنو می‌تواند دکمه‌هایی به زیرمنوی دیگر هم داشته باشد ──
   submenus: {
     shop: {
       title: '🛍 فروشگاه',
@@ -79,19 +55,15 @@ export const DEFAULT_MENU = {
   },
 };
 
-// ── مقادیر پیش‌فرض تنظیمات ─────────────────────────────────────────
 export const DEFAULT_SETTINGS = {
-  botToken: '', // اگر خالی باشد از env.BOT_TOKEN استفاده می‌شود
-  botLangMode: 'both', // 'fa' | 'en' | 'both' — دوزبانه یا تک‌زبانه
-  defaultLang: 'fa', // زبان اولیه کاربران جدید (فقط در حالت دوزبانه)
-  supportButton: { enabled: true, fa: '🛡 پشتیبانی', en: '🛡 Support' }, // دکمه پشتیبانی همیشگی در همه صفحات منو
+  botToken: '',
+  botLangMode: 'both',
+  defaultLang: 'fa',
+  supportButton: { enabled: true, fa: '🛡 پشتیبانی', en: '🛡 Support' },
 
-  broadcast: { batchSize: 25, delayMs: 40 }, // تنظیمات Rate-Limit ارسال همگانی
-  // قفل کانال: کاربر تا عضو کانال نشود ربات برایش فعال نمی‌شود
+  broadcast: { batchSize: 25, delayMs: 40 },
   requiredChannel: { enabled: false, chatId: '', url: '' },
 };
-
-// ═══════════════ پریمیتیوها ═══════════════
 
 export async function getJson(env, key, fallback = null) {
   const raw = await env.BOT_KV.get(key);
@@ -101,7 +73,7 @@ export async function getJson(env, key, fallback = null) {
 
 export async function putJson(env, key, value, opts = {}) {
   const o = {};
-  if (opts.ttl) o.expirationTtl = Math.max(opts.ttl, 60); // حداقل TTL مجاز KV: ۶۰ ثانیه
+  if (opts.ttl) o.expirationTtl = Math.max(opts.ttl, 60);
   if (opts.meta) o.metadata = opts.meta;
   await env.BOT_KV.put(key, JSON.stringify(value), o);
 }
@@ -112,11 +84,9 @@ export async function del(env, key) {
 
 const deepClone = (v) => JSON.parse(JSON.stringify(v));
 
-// ═══════════════ تنظیمات ربات ═══════════════
-
 export async function getSettings(env) {
   const s = (await getJson(env, K.SETTINGS, {})) || {};
-  delete s.adminIds; // فیلد قدیمی — مدیریت فقط از پنل وب است
+  delete s.adminIds;
   return {
     ...DEFAULT_SETTINGS,
     ...s,
@@ -129,8 +99,6 @@ export async function getSettings(env) {
 export async function saveSettings(env, settings) {
   await putJson(env, K.SETTINGS, settings);
 }
-
-// ═══════════════ منو و کیبوردها ═══════════════
 
 export function withMenuDefaults(menu = {}) {
   const submenus = {};
@@ -168,9 +136,6 @@ export async function saveMenu(env, menu) {
   await putJson(env, K.MENU, menu);
 }
 
-// ═══════════════ کاربران ═══════════════
-
-// metadata فشرده کنار هر کلید کاربر — مبنای لیست/جستجو/هدف‌گیری
 export function userMetadata(u) {
   return {
     n: String(u.firstName || '').slice(0, 64),
@@ -248,16 +213,14 @@ export async function collectTargetIds(env, withinDays = 0) {
     const res = await env.BOT_KV.list({ prefix: K.USER_PREFIX, cursor, limit: 1000 });
     for (const k of res.keys) {
       const m = k.metadata || {};
-      if (m.b || m.x) continue; // مسدود یا بات را بلاک کرده
-      if (minLastSeen && (m.s || 0) < minLastSeen) continue; // غیرفعال
+      if (m.b || m.x) continue;
+      if (minLastSeen && (m.s || 0) < minLastSeen) continue;
       ids.push(k.name.slice(K.USER_PREFIX.length));
     }
     cursor = res.list_complete ? null : res.cursor;
   } while (cursor);
   return ids;
 }
-
-// ═══════════════ آمار ═══════════════
 
 export const getStats = (env) =>
   getJson(env, K.STATS, { users: 0, banned: 0, messages: 0, broadcasts: 0, sent: 0 });
@@ -268,8 +231,6 @@ export async function bumpStats(env, patch) {
   await putJson(env, K.STATS, s);
   return s;
 }
-
-// ═══════════════ کاربران اخیر ═══════════════
 
 export async function pushRecentUser(env, id) {
   const arr = (await getJson(env, K.RECENT_USERS, [])) || [];
@@ -286,8 +247,6 @@ export async function getRecentUsers(env) {
   }));
 }
 
-// ═══════════════ ارسال (متن/نظرسنجی/عکس) ═══════════════
-
 export async function pushBroadcastId(env, id) {
   const arr = (await getJson(env, K.BROADCAST_INDEX, [])) || [];
   arr.unshift(id);
@@ -303,8 +262,6 @@ export async function getRecentBroadcasts(env) {
     .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
-// ═══════════════ نظرسنجی‌های تعاملی ═══════════════
-
 export const getPoll = (env, id) => getJson(env, K.POLL(id));
 export const putPoll = (env, poll) => putJson(env, K.POLL(poll.id), poll);
 
@@ -313,12 +270,8 @@ export function pollTotals(poll) {
   return total;
 }
 
-// ═══════════════ پست‌های عکس با لایک/دیسلایک ═══════════════
-
 export const getPost = (env, id) => getJson(env, K.POST(id));
 export const putPost = (env, post) => putJson(env, K.POST(post.id), post);
-
-// ═══════════════ ایندکس تعامل‌ها (نظرسنجی/پست) ═══════════════
 
 export async function pushEngIndex(env, type, id) {
   const arr = (await getJson(env, K.ENG_INDEX, [])) || [];
@@ -342,16 +295,13 @@ export async function getEngagementLists(env) {
   return { polls, posts };
 }
 
-// ═══════════════ تیکت‌های پشتیبانی ═══════════════
-
 export const getTicket = (env, userId) => getJson(env, K.TICKET(String(userId)));
 
 export async function putTicket(env, ticket) {
-  ticket.messages = (ticket.messages || []).slice(-100); // حداکثر ۱۰۰ پیام آخر
+  ticket.messages = (ticket.messages || []).slice(-100);
   await putJson(env, K.TICKET(String(ticket.userId)), ticket);
 }
 
-// خلاصه تیکت در ایندکس صندوق پنل
 async function upsertTicketIndex(env, ticket, { setRead = false, unreadDelta = 0 } = {}) {
   const arr = (await getJson(env, K.TICKETS_INDEX, [])) || [];
   let item = arr.find((x) => x.id === String(ticket.userId));
@@ -371,7 +321,6 @@ async function upsertTicketIndex(env, ticket, { setRead = false, unreadDelta = 0
   await putJson(env, K.TICKETS_INDEX, arr.slice(0, 100));
 }
 
-// ثبت پیام کاربر در تیکت (خوانده‌نشده برای ادمین)
 export async function ticketAppendUser(env, user, text) {
   let t = await getTicket(env, user.id);
   if (!t) {
@@ -385,7 +334,6 @@ export async function ticketAppendUser(env, user, text) {
   return t;
 }
 
-// ثبت پاسخ ادمین (از پنل) + خوانده‌شدن
 export async function ticketAppendAdmin(env, userId, text) {
   const t = await getTicket(env, userId);
   if (!t) return null;

@@ -1,16 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════
-//  routes/menu.routes.js — سازنده منو، زیرمنوهای چندلایه و دکمه‌ها
-//
-//  انواع دکمه شیشه‌ای:
-//   url      → باز کردن لینک
-//   callback → کال‌بک عمومی (مثلاً support:open یا setlang:menu)
-//   submenu  → باز کردن یک زیرمنو (value = شناسه زیرمنو، چندلایه)
-//   text     → نمایش متن به‌صورت پاپ‌آپ (alert)
-//
-//  GET  /api/menu          → منوی فعلی + پیش‌فرض‌ها
-//  PUT  /api/menu          → ذخیره (اعتبارسنجی کامل + حذف ارجاع‌های خراب)
-//  POST /api/menu/preview  → ارسال پیش‌نمایش /start به یک چت {chatId}
-// ═══════════════════════════════════════════════════════════════════
 
 import { Hono } from 'hono';
 import { requireAuth } from '../auth.js';
@@ -24,8 +11,6 @@ const fail = (c, error, status = 400) => c.json({ ok: false, error }, status);
 
 const SUBMENU_ID_RE = /^[a-z0-9_-]{1,32}$/;
 
-// ── اعتبارسنجی ردیف‌های دکمه (برای روت و زیرمنوها) ────────────────
-// dangling: ارجاع زیرمنو به شناسه ناموجود → دکمه حذف می‌شود
 function sanitizeButtons(input, validSubIds, { maxRows = 10 } = {}) {
   const rows = [];
   if (!Array.isArray(input)) return rows;
@@ -52,11 +37,9 @@ function sanitizeButtons(input, validSubIds, { maxRows = 10 } = {}) {
   return rows;
 }
 
-// ── اعتبارسنجی و پاک‌سازی کل منو ──────────────────────────────────
 function sanitizeMenu(input = {}) {
   const clean = (s, max) => String(s ?? '').trim().slice(0, max);
 
-  // ۱) ابتدا شناسه‌های معتبر زیرمنوها را جمع کن (برای اعتبارسنجی ارجاع‌ها)
   const rawSubs = (input && typeof input.submenus === 'object' && input.submenus) || {};
   const validSubIds = new Set(
     Object.keys(rawSubs).filter((id) => SUBMENU_ID_RE.test(id))
@@ -71,7 +54,6 @@ function sanitizeMenu(input = {}) {
     en: clean(input?.help?.en, 3500) || DEFAULT_MENU.help.en,
   };
 
-  // دکمه‌های شیشه‌ای روت + زیرمنوها (کیبورد ساده حذف شده است — همه‌چیز با دکمه شیشه‌ای)
   const inlineButtons = sanitizeButtons(input?.inlineButtons, validSubIds, { maxRows: 10 });
   const submenus = {};
   for (const id of validSubIds) {
@@ -84,19 +66,16 @@ function sanitizeMenu(input = {}) {
     };
   }
 
-  // fallback های پیش‌فرض
   if (!inlineButtons.length) inlineButtons.push(...JSON.parse(JSON.stringify(DEFAULT_MENU.inlineButtons)));
   if (!Object.keys(submenus).length) submenus.shop = JSON.parse(JSON.stringify(DEFAULT_MENU.submenus.shop));
 
   return { welcome, help, inlineButtons, submenus };
 }
 
-// ── خواندن منو ─────────────────────────────────────────────────────
 r.get('/', async (c) =>
   c.json({ ok: true, data: { menu: await getMenu(c.env), defaults: DEFAULT_MENU } })
 );
 
-// ── ذخیره منو ──────────────────────────────────────────────────────
 r.put('/', async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const menu = sanitizeMenu(body);
@@ -104,7 +83,6 @@ r.put('/', async (c) => {
   return c.json({ ok: true, data: { menu } });
 });
 
-// ── ارسال پیش‌نمایش به چت ادمین ────────────────────────────────────
 r.post('/preview', async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const chatId = Number(body.chatId);
