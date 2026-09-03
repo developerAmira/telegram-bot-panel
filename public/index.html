@@ -53,6 +53,15 @@
     html, body { overflow-x: clip; }
     @supports not (overflow: clip) { html, body { overflow-x: hidden; } }
 
+    /* ═══ مقاوم‌سازی در برابر بزرگ‌نمایی فونت اندروید (Settings◀Font size تا ۱۳۷٪+) ═══
+       فرزندان grid/flex به‌طور پیش‌فرض min-width:auto دارند و زیر عرض صفحه جمع نمی‌شوند؛
+       با min-width:0 متن‌ها به خط بعد می‌روند به‌جای اینکه کادر از صفحه بیرون بزند. */
+    @media (max-width: 1023px) {
+      .grid > * { min-width: 0; }
+      .flex-1 { min-width: 0; }
+      input, select, textarea { min-width: 0; }
+    }
+
     /* ═══ جدول کاربران در موبایل: به‌جای جدولِ اسکرول‌خورده، ردیف‌های کارتی بدون اسکرول افقی ═══ */
     @media (max-width: 639px) {
       .bp-utable thead { display: none !important; }
