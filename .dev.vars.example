@@ -1,0 +1,7 @@
+# محرمانه‌های توسعه لوکال — wrangler dev این فایل را به env تزریق می‌کند.
+# ⚠️ این فایل را commit نکنید (در .gitignore قرار دارد) و در پروداکشن از `wrangler secret put` استفاده کنید.
+
+ADMIN_PASSWORD=change-me-dev
+WEBHOOK_SECRET=dev-webhook-secret
+# توکن فیک برای توسعه لوکال (ثبت کاربر و مسیرهای API کار می‌کنند؛ ارسال واقعی به تلگرام خطا می‌دهد)
+BOT_TOKEN=123456:TEST-TOKEN-FOR-LOCAL-DEV

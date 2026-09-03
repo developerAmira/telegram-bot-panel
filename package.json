@@ -1,0 +1,22 @@
+{
+  "name": "telegram-admin-panel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "پنل مدیریت دو زبانه (فا/EN) برای ربات تلگرام روی Cloudflare Workers + KV",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "hono": "^4.6.14"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,1396 @@
+<!doctype html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>BotPanel — پنل مدیریت ربات</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232aabee'%3E%3Cpath d='M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z'/%3E%3C/svg%3E">
+  <!-- جلوگیری از فلش تم/زبان قبل از اجرای اپ -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('bp_theme') || 'dark';
+        var l = localStorage.getItem('bp_lang') || 'fa';
+        var d = document.documentElement;
+        if (t === 'dark') d.classList.add('dark');
+        d.lang = l; d.dir = (l === 'fa') ? 'rtl' : 'ltr';
+      } catch (e) {}
+    })();
+  </script>
+  <!-- فونت وزیرمتن (فارسی/لاتین) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Vazirmatn', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Tahoma', 'sans-serif'] },
+          colors: { brand: { 400: '#38bdf8', 500: '#2aabee', 600: '#229ed9', 700: '#1c86b8' } },
+          keyframes: { fadeIn: { from: { opacity: 0, transform: 'translateY(4px)' }, to: { opacity: 1, transform: 'none' } } },
+          animation: { fadeIn: 'fadeIn .25s ease-out' },
+        },
+      },
+    };
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: rgba(100,116,139,.4); border-radius: 8px; }
+    .tabular { font-variant-numeric: tabular-nums; }
+    @keyframes pulseDot { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+    .live-dot { animation: pulseDot 1.6s ease-in-out infinite; }
+  </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen">
+  <div id="app"></div>
+
+  <!-- مودال سراسری -->
+  <div id="modal-wrap" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" data-act="modalClose"></div>
+    <div id="modal-box" class="relative w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl animate-fadeIn max-h-[90vh] overflow-y-auto"></div>
+  </div>
+
+  <!-- توست‌ها -->
+  <div id="toasts" class="fixed z-[60] bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 flex flex-col gap-2 w-[min(92vw,380px)] pointer-events-none"></div>
+
+  <noscript><div style="padding:2rem;text-align:center">This app requires JavaScript / این پنل به جاوااسکریپت نیاز دارد.</div></noscript>
+
+  <!-- آیکون‌های Lucide -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <script>
+  'use strict';
+  /* ═══════════════════════════════════════════════════════════════
+     BotPanel — SPA پنل مدیریت ربات تلگرام (Cloudflare Workers + KV)
+     بخش‌ها: i18n ▸ state ▸ helpers ▸ login ▸ shell ▸ dashboard ▸
+             users ▸ broadcast ▸ menu ▸ settings ▸ router ▸ boot
+     ═══════════════════════════════════════════════════════════════ */
+
+  // ─────────────────────────── i18n ────────────────────────────────
+  const I18N = {
+    fa: {
+      appName: 'پنل مدیریت ربات', appShort: 'BotPanel', poweredBy: 'قدرت‌گرفته از Cloudflare Workers',
+      // login
+      loginSub: 'برای مدیریت ربات وارد شوید', password: 'رمز عبور', passwordPh: '••••••••',
+      signIn: 'ورود', signingIn: 'در حال ورود…', loginErr: 'رمز عبور نادرست است',
+      rateLimited: 'تلاش‌های زیاد؛ چند دقیقه بعد دوباره امتحان کنید', fillPassword: 'رمز عبور را وارد کنید',
+      relogin: 'نشست منقضی شد؛ دوباره وارد شوید',
+      // nav
+      dashboard: 'داشبورد', users: 'کاربران', broadcast: 'ارسال همگانی', menuBuilder: 'منو و دکمه‌ها', settings: 'تنظیمات',
+      logout: 'خروج', confirmLogout: 'از پنل خارج می‌شوید؟',
+      // common
+      save: 'ذخیره', saved: 'ذخیره شد', cancel: 'انصراف', close: 'بستن', confirm: 'تایید', remove: 'حذف',
+      refresh: 'بروزرسانی', loading: 'در حال بارگذاری…', none: '—', send: 'ارسال', sending: 'در حال ارسال…',
+      errorGeneric: 'خطایی رخ داد', copy: 'کپی', copied: 'کپی شد',
+      // live status
+      liveStatus: 'وضعیت لحظه‌ای ورکر', operational: 'فعال', offline: 'قطع', latency: 'تأخیر',
+      lastCheck: 'آخرین بررسی', region: 'مرکز داده', checkNow: 'بررسی فوری',
+      // dashboard
+      totalUsers: 'کل کاربران', bannedUsers: 'کاربران مسدود', messagesProcessed: 'پیام‌های پردازش‌شده',
+      broadcastsCreated: 'ارسال‌های همگانی', messagesSent: 'پیام‌های ارسال‌شده',
+      webhookStatus: 'وضعیت وب‌هوک تلگرام', notConfigured: 'تنظیم نشده', pendingUpdates: 'آپدیت‌های در انتظار',
+      lastError: 'آخرین خطا', recentUsers: 'کاربران اخیر', quickActions: 'دسترسی سریع',
+      goSettings: 'رفتن به تنظیمات', noUsersYet: 'هنوز کاربری ثبت نشده', botConfigured: 'ربات پیکربندی نشده است',
+      // users
+      searchUsers: 'جستجوی نام، یوزرنیم یا آیدی…', perPage: 'در صفحه', id: 'آیدی', user: 'کاربر',
+      lang: 'زبان', status: 'وضعیت', joined: 'عضویت', actions: 'عملیات', active: 'فعال', inactive: 'غیرفعال',
+      banned: 'مسدود', blockedBot: 'بات را بلاک کرده', noUsersFound: 'کاربری یافت نشد',
+      banUser: 'مسدودسازی', unbanUser: 'آزادسازی', banQ: 'این کاربر مسدود شود؟ (ربات پیامش را نادیده می‌گیرد)',
+      banReason: 'دلیل (اختیاری)', sendMessage: 'ارسال پیام', userDetails: 'جزئیات کاربر',
+      firstName: 'نام', username: 'یوزرنیم', lastSeen: 'آخرین فعالیت', bannedAt: 'زمان مسدودی', reason: 'دلیل',
+      messageText: 'متن پیام', msgSent: 'پیام ارسال شد', page: 'صفحه', next: 'بعدی', prev: 'قبلی',
+      // broadcast
+      newBroadcast: 'ارسال پیام همگانی جدید', target: 'مخاطبان', allUsers: 'همه کاربران (غیرمسدود)',
+      active7d: 'فعال در ۷ روز گذشته', active30d: 'فعال در ۳۰ روز گذشته', parseMode: 'فرمت متن',
+      plain: 'متن ساده', addUrlRow: 'افزودن ردیف دکمه', addBtn: '+ دکمه', btnText: 'متن دکمه',
+      btnUrl: 'لینک (https://…)', startBroadcast: 'شروع ارسال', progress: 'پیشرفت', sentLabel: 'ارسال‌شده',
+      failedLabel: 'ناموفق', totalLabel: 'مجموع', pause: 'توقف موقت', resume: 'ادامه', stop: 'توقف قطعی',
+      confirmStop: 'ارسال همگانی متوقف شود؟', broadcastHistory: 'تاریخچه ارسال', noHistory: 'سابقه‌ای موجود نیست',
+      running: 'در حال ارسال', paused: 'متوقف موقت', stopped: 'متوقف‌شده', done: 'تکمیل‌شده', failed: 'ناموفق',
+      createdAt: 'ایجاد', chars: 'کاراکتر', targetHint: 'کاربران مسدود و افرادی که ربات را بلاک کرده‌اند به‌صورت خودکار حذف می‌شوند',
+      noTargets: 'کاربر هدفی یافت نشد',
+      // menu
+      menuHint: 'پیکربندی پیام‌ها، کیبورد اصلی و دکمه‌های شیشه‌ای ربات', welcomeTab: 'پیام خوش‌آمد',
+      keyboardTab: 'کیبورد اصلی', inlineTab: 'دکمه‌های شیشه‌ای',
+      welcomeFa: 'متن فارسی (/start)', welcomeEn: 'متن انگلیسی (/start)', helpFa: 'راهنمای فارسی (/help)', helpEn: 'راهنمای انگلیسی (/help)',
+      tplHint: 'متغیرها: {name} نام، {username} یوزرنیم، {id} آیدی',
+      addRow: 'افزودن ردیف', kbRowHint: 'دکمه‌های هر ردیف را با کاما (,) جدا کنید',
+      btnType: 'نوع', typeUrl: 'لینک', typeCallback: 'کال‌بک', value: 'مقدار', valueUrl: 'https://…', valueCb: 'مثلاً my:action (حداکثر ۶۴ بایت)',
+      simulator: 'شبیه‌ساز ربات', simHint: 'رفتار ربات را با پیکربندی فعلی تست کنید', sendTest: 'ارسال پیش‌نمایش واقعی',
+      chatIdPh: 'آیدی عددی چت (مثلاً خودتان)', testSent: 'پیش‌نمایش ارسال شد', resetDefaults: 'بازنشانی به پیش‌فرض',
+      confirmReset: 'منو به حالت پیش‌فرض بازگردانده شود؟', botReplies: 'ربات', you: 'شما',
+      // settings
+      botSettings: 'تنظیمات ربات', botToken: 'توکن ربات', tokenStored: 'توکن ذخیره‌شده:',
+      tokenHint: 'از @BotFather دریافت می‌شود. خالی بگذارید تا تغییر نکند.', tokenMissingWarn: 'هنوز توکنی تنظیم نشده است',
+      adminIds: 'آیدی ادمین‌های ربات', adminIdsHint: 'اعداد را با کاما جدا کنید. آیدی خود را با دستور /id در ربات بگیرید.',
+      defaultBotLang: 'زبان پیش‌فرض ربات', broadcastTuning: 'تیونینگ ارسال همگانی',
+      batchSize: 'حجم هر دسته (۱ تا ۵۰)', delayMs: 'فاصله بین پیام‌ها (میلی‌ثانیه)',
+      webhookMgmt: 'مدیریت وب‌هوک', setWebhook: 'تنظیم وب‌هوک', delWebhook: 'حذف وب‌هوک',
+      confirmDelWh: 'وب‌هوک حذف شود؟ ربات پیام‌ها را دریافت نخواهد کرد.',
+      webhookSetOk: 'وب‌هوک با موفقیت تنظیم شد', webhookDelOk: 'وب‌هوک حذف شد',
+      panelPrefs: 'تنظیمات پنل', appearance: 'پوسته', dark: 'تاریک', light: 'روشن', language: 'زبان',
+      version: 'نسخه',
+    },
+    en: {
+      appName: 'Bot Admin Panel', appShort: 'BotPanel', poweredBy: 'Powered by Cloudflare Workers',
+      loginSub: 'Sign in to manage your bot', password: 'Password', passwordPh: '••••••••',
+      signIn: 'Sign in', signingIn: 'Signing in…', loginErr: 'Incorrect password',
+      rateLimited: 'Too many attempts; try again in a few minutes', fillPassword: 'Please enter the password',
+      relogin: 'Session expired; please sign in again',
+      dashboard: 'Dashboard', users: 'Users', broadcast: 'Broadcast', menuBuilder: 'Menus & Buttons', settings: 'Settings',
+      logout: 'Log out', confirmLogout: 'Log out of the panel?',
+      save: 'Save', saved: 'Saved', cancel: 'Cancel', close: 'Close', confirm: 'Confirm', remove: 'Remove',
+      refresh: 'Refresh', loading: 'Loading…', none: '—', send: 'Send', sending: 'Sending…',
+      errorGeneric: 'Something went wrong', copy: 'Copy', copied: 'Copied',
+      liveStatus: 'Worker live status', operational: 'Operational', offline: 'Offline', latency: 'Latency',
+      lastCheck: 'Last check', region: 'Data center', checkNow: 'Check now',
+      totalUsers: 'Total users', bannedUsers: 'Banned users', messagesProcessed: 'Messages processed',
+      broadcastsCreated: 'Broadcasts', messagesSent: 'Messages sent',
+      webhookStatus: 'Telegram webhook status', notConfigured: 'Not configured', pendingUpdates: 'Pending updates',
+      lastError: 'Last error', recentUsers: 'Recent users', quickActions: 'Quick actions',
+      goSettings: 'Go to settings', noUsersYet: 'No users yet', botConfigured: 'Bot is not configured',
+      searchUsers: 'Search name, username or ID…', perPage: 'Per page', id: 'ID', user: 'User',
+      lang: 'Lang', status: 'Status', joined: 'Joined', actions: 'Actions', active: 'Active', inactive: 'Inactive',
+      banned: 'Banned', blockedBot: 'Blocked the bot', noUsersFound: 'No users found',
+      banUser: 'Ban', unbanUser: 'Unban', banQ: 'Ban this user? (the bot will ignore their messages)',
+      banReason: 'Reason (optional)', sendMessage: 'Send message', userDetails: 'User details',
+      firstName: 'First name', username: 'Username', lastSeen: 'Last seen', bannedAt: 'Banned at', reason: 'Reason',
+      messageText: 'Message text', msgSent: 'Message sent', page: 'Page', next: 'Next', prev: 'Prev',
+      newBroadcast: 'New broadcast', target: 'Audience', allUsers: 'All users (non-banned)',
+      active7d: 'Active in last 7 days', active30d: 'Active in last 30 days', parseMode: 'Parse mode',
+      plain: 'Plain text', addUrlRow: 'Add button row', addBtn: '+ Button', btnText: 'Button text',
+      btnUrl: 'URL (https://…)', startBroadcast: 'Start broadcast', progress: 'Progress', sentLabel: 'Sent',
+      failedLabel: 'Failed', totalLabel: 'Total', pause: 'Pause', resume: 'Resume', stop: 'Stop',
+      confirmStop: 'Stop this broadcast?', broadcastHistory: 'Broadcast history', noHistory: 'No history yet',
+      running: 'Running', paused: 'Paused', stopped: 'Stopped', done: 'Done', failed: 'Failed',
+      createdAt: 'Created', chars: 'chars', targetHint: 'Banned users and users who blocked the bot are excluded automatically',
+      noTargets: 'No target users found',
+      menuHint: 'Configure bot messages, main keyboard and inline buttons', welcomeTab: 'Welcome message',
+      keyboardTab: 'Main keyboard', inlineTab: 'Inline buttons',
+      welcomeFa: 'Persian text (/start)', welcomeEn: 'English text (/start)', helpFa: 'Persian help (/help)', helpEn: 'English help (/help)',
+      tplHint: 'Variables: {name}, {username}, {id}',
+      addRow: 'Add row', kbRowHint: 'Separate buttons of each row with commas',
+      btnType: 'Type', typeUrl: 'URL', typeCallback: 'Callback', value: 'Value', valueUrl: 'https://…', valueCb: 'e.g. my:action (max 64 bytes)',
+      simulator: 'Bot simulator', simHint: 'Test the bot behavior with current configuration', sendTest: 'Send real preview',
+      chatIdPh: 'Numeric chat ID (e.g. yours)', testSent: 'Preview sent', resetDefaults: 'Reset to defaults',
+      confirmReset: 'Reset menu to defaults?', botReplies: 'Bot', you: 'You',
+      botSettings: 'Bot settings', botToken: 'Bot token', tokenStored: 'Stored token:',
+      tokenHint: 'Get it from @BotFather. Leave empty to keep unchanged.', tokenMissingWarn: 'No token configured yet',
+      adminIds: 'Bot admin IDs', adminIdsHint: 'Comma-separated numbers. Get your ID via /id in the bot.',
+      defaultBotLang: 'Default bot language', broadcastTuning: 'Broadcast tuning',
+      batchSize: 'Batch size (1–50)', delayMs: 'Delay between messages (ms)',
+      webhookMgmt: 'Webhook management', setWebhook: 'Set webhook', delWebhook: 'Delete webhook',
+      confirmDelWh: 'Delete the webhook? The bot will stop receiving updates.',
+      webhookSetOk: 'Webhook configured successfully', webhookDelOk: 'Webhook deleted',
+      panelPrefs: 'Panel preferences', appearance: 'Theme', dark: 'Dark', light: 'Light', language: 'Language',
+      version: 'Version',
+    },
+  };
+
+  // ─────────────────────────── state ───────────────────────────────
+  const S = {
+    token: localStorage.getItem('bp_token') || '',
+    lang: localStorage.getItem('bp_lang') || 'fa',
+    route: 'dashboard',
+    timers: [],
+    live: { state: 'unknown', ms: null, colo: null, at: null },
+  };
+  const ROUTES = ['dashboard', 'users', 'broadcast', 'menu', 'settings'];
+  const NAV = [
+    { id: 'dashboard', icon: 'layout-dashboard' },
+    { id: 'users', icon: 'users' },
+    { id: 'broadcast', icon: 'megaphone' },
+    { id: 'menu', icon: 'keyboard' },
+    { id: 'settings', icon: 'settings' },
+  ];
+  // وضعیت صفحات
+  const UP = { cursor: null, stack: [], page: 1, limit: 20, q: '' };      // users
+  const BC = { rows: [[]], running: false, jobId: null };                  // broadcast
+  const MU = { menu: null, defaults: null, tab: 'welcome' };              // menu
+  const CF = { resolve: null };                                            // confirm
+  const MODAL = { ctx: {} };                                              // modal context
+
+  // ─────────────────────────── helpers ─────────────────────────────
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  const t = (k) => (I18N[S.lang] && I18N[S.lang][k]) || I18N.fa[k] || k;
+  const loc = () => (S.lang === 'fa' ? 'fa-IR' : 'en-US');
+  const fmtNum = (n) => Number(n || 0).toLocaleString(loc());
+  const fmtDate = (ts) => (ts ? new Date(ts).toLocaleString(loc(), { dateStyle: 'medium', timeStyle: 'short' }) : t('none'));
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const refreshIcons = () => { try { window.lucide && lucide.createIcons(); } catch (e) {} };
+  const addTimer = (id) => S.timers.push(id);
+  const clearTimers = () => { S.timers.forEach(clearInterval); S.timers = []; };
+
+  const CLS = {
+    card: 'rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm',
+    input: 'w-full rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition placeholder:text-slate-400',
+    label: 'block text-sm font-medium mb-1.5 text-slate-600 dark:text-slate-300',
+    btnP: 'inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold px-4 py-2.5 transition disabled:opacity-50 disabled:cursor-not-allowed',
+    btnS: 'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium px-4 py-2.5 transition disabled:opacity-50',
+    btnD: 'inline-flex items-center justify-center gap-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold px-4 py-2.5 transition disabled:opacity-50',
+    iconBtn: 'p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition',
+    chip: 'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium',
+  };
+  const chip = (color, txt) => `<span class="${CLS.chip} ${color}">${txt}</span>`;
+
+  async function api(path, opts = {}) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (S.token) headers['Authorization'] = 'Bearer ' + S.token;
+    let res;
+    try {
+      res = await fetch('/api' + path, { method: opts.method || 'GET', headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+    } catch (e) {
+      throw new Error(t('offline'));
+    }
+    let d = {};
+    try { d = await res.json(); } catch (e) {}
+    if (res.status === 401) {
+      if (S.token) { localStorage.removeItem('bp_token'); S.token = ''; render(); }
+      throw new Error(t('relogin'));
+    }
+    if (!res.ok || d.ok === false) throw new Error(d.error || ('HTTP ' + res.status));
+    return d.data;
+  }
+
+  function toast(msg, type = 'info') {
+    const map = { success: ['check-circle-2', 'text-emerald-500'], error: ['alert-circle', 'text-rose-500'], info: ['info', 'text-sky-500'] };
+    const [icon, color] = map[type] || map.info;
+    const el = document.createElement('div');
+    el.className = 'pointer-events-auto flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg px-4 py-3 transition-opacity duration-300 animate-fadeIn';
+    el.innerHTML = '<i data-lucide="' + icon + '" class="w-5 h-5 shrink-0 ' + color + '"></i><span class="text-sm leading-5">' + esc(msg) + '</span>';
+    $('toasts').appendChild(el);
+    refreshIcons();
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 320); }, 3500);
+  }
+
+  function openModal(html) {
+    $('modal-box').innerHTML = html;
+    const w = $('modal-wrap');
+    w.classList.remove('hidden'); w.classList.add('flex');
+    refreshIcons();
+  }
+  function closeModal() {
+    const w = $('modal-wrap');
+    w.classList.add('hidden'); w.classList.remove('flex');
+    $('modal-box').innerHTML = '';
+    if (CF.resolve) { CF.resolve(false); CF.resolve = null; }
+  }
+  function confirmDlg(msg, okLabel) {
+    return new Promise((resolve) => {
+      CF.resolve = resolve;
+      openModal(
+        '<div class="p-6">' +
+        '<div class="flex items-start gap-3 mb-5"><i data-lucide="alert-triangle" class="w-6 h-6 text-amber-500 shrink-0 mt-0.5"></i>' +
+        '<p class="text-sm leading-6">' + esc(msg) + '</p></div>' +
+        '<div class="flex gap-2 justify-end">' +
+        '<button data-act="confirmNo" class="' + CLS.btnS + '">' + t('cancel') + '</button>' +
+        '<button data-act="confirmYes" class="' + CLS.btnP + '">' + esc(okLabel || t('confirm')) + '</button>' +
+        '</div></div>'
+      );
+    });
+  }
+
+  // وضعیت زنده ورکر — در topbar و کارت داشبورد
+  function paintLive() {
+    const L = S.live;
+    const pill = $('live-pill');
+    if (pill) {
+      if (L.state === 'ok') {
+        pill.className = 'inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 text-xs font-medium';
+        pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>' + t('operational') + (L.ms != null ? ' <span class="tabular opacity-70">' + L.ms + 'ms</span>' : '');
+      } else if (L.state === 'down') {
+        pill.className = 'inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2.5 py-1 text-xs font-medium';
+        pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span>' + t('offline');
+      } else {
+        pill.className = 'inline-flex items-center gap-1.5 rounded-full bg-slate-500/10 text-slate-500 px-2.5 py-1 text-xs font-medium';
+        pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span>…';
+      }
+    }
+    const dot = $('ws-dot'), txt = $('ws-status-text');
+    if (dot && txt) {
+      const okc = L.state === 'ok', down = L.state === 'down';
+      dot.className = 'w-3.5 h-3.5 rounded-full ' + (okc ? 'bg-emerald-500 live-dot' : down ? 'bg-rose-500' : 'bg-slate-400');
+      txt.className = 'text-lg font-bold ' + (okc ? 'text-emerald-500' : down ? 'text-rose-500' : 'text-slate-400');
+      txt.textContent = okc ? t('operational') : down ? t('offline') : '…';
+      if ($('ws-lat')) $('ws-lat').textContent = L.ms != null ? fmtNum(L.ms) + ' ms' : t('none');
+      if ($('ws-colo')) $('ws-colo').textContent = L.colo || t('none');
+      if ($('ws-check')) $('ws-check').textContent = L.at ? fmtDate(L.at) : t('none');
+    }
+  }
+  async function ping() {
+    try {
+      const t0 = Date.now();
+      const r = await fetch('/api/health', { cache: 'no-store' });
+      const j = await r.json();
+      S.live = { state: 'ok', ms: Date.now() - t0, colo: (j.data && j.data.colo) || null, at: Date.now() };
+    } catch (e) {
+      S.live = { state: 'down', ms: null, colo: null, at: Date.now() };
+    }
+    paintLive();
+  }
+  function startLiveLoop() {
+    ping();
+    addTimer(setInterval(ping, 30000));
+  }
+
+  // ─────────────────────────── login ───────────────────────────────
+  function renderLogin(msg) {
+    clearTimers();
+    document.title = 'BotPanel — ' + t('signIn');
+    $('app').innerHTML =
+      '<div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">' +
+      '<div class="absolute w-[480px] h-[480px] rounded-full bg-brand-500/15 blur-3xl -top-32 -end-32"></div>' +
+      '<div class="absolute w-72 h-72 rounded-full bg-blue-600/10 blur-3xl -bottom-20 -start-20"></div>' +
+      '<div class="w-full max-w-sm relative">' +
+      '<div class="text-center mb-8">' +
+      '<div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-400 to-blue-600 flex items-center justify-center shadow-lg shadow-brand-500/30 mb-4"><i data-lucide="send" class="w-8 h-8 text-white"></i></div>' +
+      '<h1 class="text-2xl font-extrabold">' + t('appName') + '</h1>' +
+      '<p class="text-sm text-slate-500 mt-1.5">' + t('loginSub') + '</p>' +
+      '</div>' +
+      '<div class="' + CLS.card + ' p-6">' +
+      (msg ? '<div class="mb-4 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs px-3 py-2.5">' + esc(msg) + '</div>' : '') +
+      '<label class="' + CLS.label + '" for="pw">' + t('password') + '</label>' +
+      '<div class="relative">' +
+      '<i data-lucide="lock" class="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3 text-slate-400"></i>' +
+      '<input id="pw" type="password" autocomplete="current-password" placeholder="' + t('passwordPh') + '" class="' + CLS.input + ' ps-10">' +
+      '<button type="button" data-act="pwEye" class="absolute top-1/2 -translate-y-1/2 end-2 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="eye" class="w-4 h-4"></i></button>' +
+      '</div>' +
+      '<p id="login-err" class="hidden text-xs text-rose-500 mt-2"></p>' +
+      '<button id="login-btn" data-act="login" class="' + CLS.btnP + ' w-full mt-5"><i data-lucide="log-in" class="w-4 h-4"></i>' + t('signIn') + '</button>' +
+      '</div>' +
+      '<p class="text-center text-[11px] text-slate-400 mt-6 flex items-center justify-center gap-1.5"><i data-lucide="cloud" class="w-3.5 h-3.5"></i>' + t('poweredBy') + '</p>' +
+      '</div></div>';
+    refreshIcons();
+    $('pw').focus();
+  }
+
+  async function doLogin() {
+    const pw = $('pw').value;
+    const err = $('login-err'), btn = $('login-btn');
+    if (!pw) { err.textContent = t('fillPassword'); err.classList.remove('hidden'); return; }
+    err.classList.add('hidden');
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>' + t('signingIn');
+    refreshIcons();
+    try {
+      const d = await (async () => {
+        const r = await fetch('/api/auth/login', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw }),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+        return j.data;
+      })();
+      S.token = d.token;
+      localStorage.setItem('bp_token', d.token);
+      toast(t('signIn') + ' ✓', 'success');
+      render();
+    } catch (e) {
+      err.textContent = e.message === 'invalid_credentials' ? t('loginErr') : e.message === 'rate_limited' ? t('rateLimited') : e.message;
+      err.classList.remove('hidden');
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="log-in" class="w-4 h-4"></i>' + t('signIn');
+      refreshIcons();
+    }
+  }
+
+  async function doLogout() {
+    if (!(await confirmDlg(t('confirmLogout'), t('logout')))) return;
+    try { await api('/auth/logout', { method: 'POST' }); } catch (e) {}
+    localStorage.removeItem('bp_token');
+    S.token = '';
+    render();
+  }
+
+  // ─────────────────────────── shell ───────────────────────────────
+  function renderShell() {
+    document.title = 'BotPanel — ' + t(S.route);
+    const nav = (mobile) => NAV.map((n) => {
+      const active = S.route === n.id;
+      if (mobile) {
+        return '<button data-act="nav" data-to="' + n.id + '" class="flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-xl transition ' +
+          (active ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200') + '">' +
+          '<i data-lucide="' + n.icon + '" class="w-5 h-5"></i><span class="text-[10px] font-medium">' + t(n.id) + '</span></button>';
+      }
+      return '<button data-act="nav" data-to="' + n.id + '" class="w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ' +
+        (active ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-100') + '">' +
+        '<i data-lucide="' + n.icon + '" class="w-[18px] h-[18px]"></i>' + t(n.id) + '</button>';
+    }).join('');
+
+    $('app').innerHTML =
+      // ── سایدبار دسکتاپ ──
+      '<aside class="hidden md:flex fixed inset-y-0 start-0 w-64 flex-col border-e border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 z-30">' +
+      '<div class="flex items-center gap-3 px-2 py-3 mb-4">' +
+      '<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-blue-600 flex items-center justify-center shadow-md shadow-brand-500/25"><i data-lucide="send" class="w-5 h-5 text-white"></i></div>' +
+      '<div><div class="font-extrabold leading-tight">' + t('appShort') + '</div>' +
+      '<div class="text-[11px] text-slate-400">Telegram Bot Panel</div></div></div>' +
+      '<nav class="flex-1 space-y-1">' + nav(false) + '</nav>' +
+      '<button data-act="logout" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-rose-500 hover:bg-rose-500/10 transition mt-2"><i data-lucide="log-out" class="w-[18px] h-[18px]"></i>' + t('logout') + '</button>' +
+      '<div class="text-[10px] text-slate-400 px-2 pt-3 border-t border-slate-100 dark:border-slate-800 mt-3">' + t('poweredBy') + '</div>' +
+      '</aside>' +
+
+      // ── محتوای اصلی ──
+      '<div class="md:ms-64 min-h-screen flex flex-col">' +
+      // topbar
+      '<header class="sticky top-0 z-20 bg-white/85 dark:bg-slate-950/85 backdrop-blur border-b border-slate-200 dark:border-slate-800">' +
+      '<div class="max-w-7xl mx-auto px-4 h-14 flex items-center gap-2">' +
+      '<div class="md:hidden w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-blue-600 flex items-center justify-center"><i data-lucide="send" class="w-4 h-4 text-white"></i></div>' +
+      '<h2 class="font-bold text-base sm:text-lg flex-1 truncate">' + t(S.route) + '</h2>' +
+      '<span id="live-pill" class="cursor-default"></span>' +
+      '<button data-act="toggleTheme" title="' + t('appearance') + '" class="' + CLS.iconBtn + '"><i data-lucide="' + (document.documentElement.classList.contains('dark') ? 'sun' : 'moon') + '" class="w-[18px] h-[18px]"></i></button>' +
+      '<button data-act="toggleLang" title="' + t('language') + '" class="' + CLS.iconBtn + ' text-xs font-extrabold">' + (S.lang === 'fa' ? 'EN' : 'فا') + '</button>' +
+      '<button data-act="logout" title="' + t('logout') + '" class="' + CLS.iconBtn + ' md:hidden"><i data-lucide="log-out" class="w-[18px] h-[18px]"></i></button>' +
+      '</div></header>' +
+
+      '<main id="view" class="flex-1 w-full max-w-7xl mx-auto p-4 md:p-7 pb-24 md:pb-10 animate-fadeIn"></main>' +
+      '</div>' +
+
+      // ── ناوبری پایین موبایل ──
+      '<nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 px-2 pb-[env(safe-area-inset-bottom)]">' +
+      '<div class="flex items-stretch max-w-lg mx-auto">' + nav(true) + '</div></nav>';
+
+    paintLive();
+    // رندر نمای فعلی
+    ({ dashboard: renderDashboard, users: renderUsers, broadcast: renderBroadcast, menu: renderMenu, settings: renderSettings })[S.route]();
+    refreshIcons();
+  }
+  </script>
+  <script>
+  /* ═════════════ PART 2: views ▸ actions ▸ router ▸ boot ═════════════ */
+
+  const SIM_T = {
+    fa: { kbHint: '⬇️ منوی اصلی فعال شد', unknown: '🤔 متوجه نشدم. برای راهنما /help را بزنید.', chooseLang: '🌍 زبان خود را انتخاب کنید:', yourId: '🆔 آیدی عددی شما: ۵۵۵۰۰۱۲۳۴', pong: '🏓 پونگ! ربات فعال است.', online: 'آنلاین', bot: 'ربات شما', typing: 'در حال نوشتن…' },
+    en: { kbHint: '⬇️ Main menu is now active', unknown: "🤔 I didn't understand. Send /help for usage.", chooseLang: '🌍 Please choose your language:', yourId: '🆔 Your numeric ID: 555001234', pong: '🏓 Pong! The bot is alive.', online: 'online', bot: 'Your Bot', typing: 'typing…' },
+  };
+
+  const loadingRow = (cols) =>
+    '<tr><td colspan="' + cols + '" class="py-12 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin inline-block align-middle me-2"></i>' + t('loading') + '</td></tr>';
+
+  // ═══════════════════════ داشبورد ═══════════════════════
+  function statCard(icon, tint, valId, labelKey) {
+    return '<div class="' + CLS.card + ' p-5">' +
+      '<div class="flex items-center gap-3">' +
+      '<div class="w-11 h-11 rounded-xl ' + tint + ' flex items-center justify-center shrink-0"><i data-lucide="' + icon + '" class="w-5 h-5"></i></div>' +
+      '<div class="min-w-0"><div id="' + valId + '" class="text-2xl font-extrabold tabular leading-none">—</div>' +
+      '<div class="text-xs text-slate-500 mt-1.5 truncate">' + t(labelKey) + '</div></div></div></div>';
+  }
+
+  function whBoxHtml(w) {
+    if (!w || (!w.configured && !w.error)) {
+      return '<div class="rounded-xl bg-slate-100 dark:bg-slate-800 p-4 text-sm text-slate-500 flex items-center justify-between gap-3">' +
+        '<span>' + t('notConfigured') + '</span>' +
+        '<button data-act="nav" data-to="settings" class="text-brand-600 dark:text-brand-400 font-semibold hover:underline shrink-0">' + t('goSettings') + '</button></div>';
+    }
+    if (w.error) {
+      return '<div class="rounded-xl bg-rose-500/10 p-4 text-sm text-rose-600 dark:text-rose-400" dir="ltr">' + esc(w.error) + '</div>';
+    }
+    return '<dl class="space-y-2.5 text-sm">' +
+      '<div class="flex justify-between gap-3"><dt class="text-slate-500 shrink-0">URL</dt><dd class="font-mono text-xs truncate" dir="ltr">' + esc(w.url || t('none')) + '</dd></div>' +
+      '<div class="flex justify-between"><dt class="text-slate-500">' + t('pendingUpdates') + '</dt><dd class="font-bold tabular">' + fmtNum(w.pending) + '</dd></div>' +
+      '<div class="flex justify-between gap-3"><dt class="text-slate-500 shrink-0">' + t('lastError') + '</dt><dd class="truncate text-xs ' + (w.lastError ? 'text-rose-500' : 'text-slate-400') + '" dir="ltr">' + esc(w.lastError || t('none')) + '</dd></div>' +
+      '</dl>';
+  }
+
+  function renderDashboard() {
+    $('view').innerHTML =
+      '<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">' +
+      statCard('users', 'bg-sky-500/10 text-sky-500', 'st-users', 'totalUsers') +
+      statCard('shield-off', 'bg-rose-500/10 text-rose-500', 'st-banned', 'bannedUsers') +
+      statCard('message-square-dot', 'bg-violet-500/10 text-violet-500', 'st-msgs', 'messagesProcessed') +
+      statCard('megaphone', 'bg-amber-500/10 text-amber-500', 'st-bcasts', 'broadcastsCreated') +
+      statCard('send', 'bg-emerald-500/10 text-emerald-500', 'st-sent', 'messagesSent') +
+      '</div>' +
+
+      '<div class="grid lg:grid-cols-3 gap-4 mt-4 md:mt-6">' +
+      // ── کارت وضعیت زنده ورکر ──
+      '<div class="' + CLS.card + ' p-5">' +
+      '<div class="flex items-center justify-between mb-4"><h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-brand-500"></i>' + t('liveStatus') + '</h3>' +
+      '<button data-act="pingNow" class="' + CLS.iconBtn + '" title="' + t('checkNow') + '"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button></div>' +
+      '<div class="flex items-center gap-3 mb-4"><span id="ws-dot" class="w-3.5 h-3.5 rounded-full bg-slate-400"></span><span id="ws-status-text" class="text-lg font-bold">…</span></div>' +
+      '<dl class="space-y-2 text-sm">' +
+      '<div class="flex justify-between"><dt class="text-slate-500">' + t('latency') + '</dt><dd id="ws-lat" class="font-bold tabular">' + t('none') + '</dd></div>' +
+      '<div class="flex justify-between"><dt class="text-slate-500">' + t('region') + '</dt><dd id="ws-colo" class="font-bold">' + t('none') + '</dd></div>' +
+      '<div class="flex justify-between"><dt class="text-slate-500">' + t('lastCheck') + '</dt><dd id="ws-check" class="text-xs">' + t('none') + '</dd></div>' +
+      '</dl></div>' +
+
+      // ── کارت وب‌هوک ──
+      '<div class="' + CLS.card + ' p-5">' +
+      '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="webhook" class="w-4 h-4 text-brand-500"></i>' + t('webhookStatus') + '</h3>' +
+      '<div id="wh-box"><div class="py-6 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin inline-block"></i></div></div>' +
+      '</div>' +
+
+      // ── کاربران اخیر ──
+      '<div class="' + CLS.card + ' p-5">' +
+      '<div class="flex items-center justify-between mb-4"><h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4 text-brand-500"></i>' + t('recentUsers') + '</h3>' +
+      '<button data-act="nav" data-to="users" class="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline">' + t('users') + ' →</button></div>' +
+      '<div id="recent-list" class="space-y-1"></div></div>' +
+      '</div>' +
+
+      // ── دسترسی سریع ──
+      '<div class="' + CLS.card + ' p-5 mt-4 md:mt-6">' +
+      '<h3 class="font-bold text-sm flex items-center gap-2 mb-3"><i data-lucide="zap" class="w-4 h-4 text-brand-500"></i>' + t('quickActions') + '</h3>' +
+      '<div class="flex flex-wrap gap-2">' +
+      '<button data-act="nav" data-to="broadcast" class="' + CLS.btnP + '"><i data-lucide="megaphone" class="w-4 h-4"></i>' + t('newBroadcast') + '</button>' +
+      '<button data-act="nav" data-to="menu" class="' + CLS.btnS + '"><i data-lucide="keyboard" class="w-4 h-4"></i>' + t('menuBuilder') + '</button>' +
+      '<button data-act="dashRefresh" class="' + CLS.btnS + '"><i data-lucide="refresh-cw" class="w-4 h-4"></i>' + t('refresh') + '</button>' +
+      '</div></div>';
+
+    refreshIcons();
+    paintLive();
+    startLiveLoop();          // پینگ هر ۳۰ ثانیه
+    loadDashboard();
+    addTimer(setInterval(loadDashboard, 60000)); // آمار هر ۶۰ ثانیه
+  }
+
+  async function loadDashboard() {
+    try {
+      const d = await api('/dashboard/stats');
+      const s = d.stats || {};
+      $('st-users').textContent = fmtNum(s.users);
+      $('st-banned').textContent = fmtNum(s.banned);
+      $('st-msgs').textContent = fmtNum(s.messages);
+      $('st-bcasts').textContent = fmtNum(s.broadcasts);
+      $('st-sent').textContent = fmtNum(s.sent);
+      $('wh-box').innerHTML = whBoxHtml(d.webhook);
+      const rec = (d.recentUsers || []).map((u) =>
+        '<div class="flex items-center gap-3 py-2">' +
+        '<div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">' + esc((u.firstName || '?').slice(0, 1).toUpperCase()) + '</div>' +
+        '<div class="min-w-0 flex-1"><div class="text-sm font-medium truncate">' + esc(u.firstName || u.id) +
+        (u.banned ? ' <span class="text-[10px] text-rose-500 font-bold">⛔</span>' : '') + '</div>' +
+        '<div class="text-[11px] text-slate-400">' + (u.username ? '@' + esc(u.username) + ' · ' : '') + fmtDate(u.joinedAt) + '</div></div></div>'
+      ).join('');
+      $('recent-list').innerHTML = rec || '<p class="text-sm text-slate-400 text-center py-6">' + t('noUsersYet') + '</p>';
+      refreshIcons();
+    } catch (e) {
+      if (e.message !== t('relogin')) toast(e.message, 'error');
+    }
+  }
+
+  // ═══════════════════════ کاربران ═══════════════════════
+  function userRow(u) {
+    const weekAgo = Date.now() - 7 * 86400000;
+    const st = u.banned
+      ? chip('bg-rose-500/10 text-rose-600 dark:text-rose-400', t('banned'))
+      : u.blockedBot
+        ? chip('bg-amber-500/10 text-amber-600 dark:text-amber-400', t('blockedBot'))
+        : (u.lastSeen > weekAgo
+          ? chip('bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', t('active'))
+          : chip('bg-slate-500/10 text-slate-500', t('inactive')));
+    const banBtn = u.banned
+      ? '<button data-act="unbanUser" data-id="' + esc(u.id) + '" title="' + t('unbanUser') + '" class="' + CLS.iconBtn + ' text-emerald-500"><i data-lucide="shield-check" class="w-4 h-4"></i></button>'
+      : '<button data-act="banUser" data-id="' + esc(u.id) + '" title="' + t('banUser') + '" class="' + CLS.iconBtn + ' text-rose-500"><i data-lucide="shield-off" class="w-4 h-4"></i></button>';
+    return '<tr class="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">' +
+      '<td class="py-3 ps-4"><div class="flex items-center gap-3">' +
+      '<div class="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">' + esc((u.firstName || '?').slice(0, 1).toUpperCase()) + '</div>' +
+      '<div class="min-w-0"><div class="text-sm font-semibold truncate max-w-[140px] sm:max-w-[200px]">' + esc(u.firstName || '—') + '</div>' +
+      '<div class="text-[11px] text-slate-400 truncate">' + (u.username ? '@' + esc(u.username) : '—') + '</div></div></div></td>' +
+      '<td class="py-3"><button data-act="copyTxt" data-txt="' + esc(u.id) + '" class="font-mono text-xs hover:text-brand-500 transition" dir="ltr" title="' + t('copy') + '">' + esc(u.id) + '</button></td>' +
+      '<td class="py-3 hidden sm:table-cell">' + (u.lang ? chip('bg-sky-500/10 text-sky-600 dark:text-sky-400', esc(u.lang.toUpperCase())) : '<span class="text-slate-400 text-xs">' + t('none') + '</span>') + '</td>' +
+      '<td class="py-3">' + st + '</td>' +
+      '<td class="py-3 hidden lg:table-cell text-xs text-slate-400 whitespace-nowrap">' + fmtDate(u.joinedAt) + '</td>' +
+      '<td class="py-3 pe-4"><div class="flex items-center justify-end gap-0.5">' +
+      '<button data-act="openMsg" data-id="' + esc(u.id) + '" data-name="' + esc(u.firstName || u.id) + '" title="' + t('sendMessage') + '" class="' + CLS.iconBtn + '"><i data-lucide="message-square" class="w-4 h-4"></i></button>' +
+      banBtn +
+      '<button data-act="userDetail" data-id="' + esc(u.id) + '" title="' + t('userDetails') + '" class="' + CLS.iconBtn + '"><i data-lucide="info" class="w-4 h-4"></i></button>' +
+      '</div></td></tr>';
+  }
+
+  function renderUsers() {
+    $('view').innerHTML =
+      '<div class="' + CLS.card + ' overflow-hidden">' +
+      // toolbar
+      '<div class="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-3">' +
+      '<div class="relative flex-1">' +
+      '<i data-lucide="search" class="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3 text-slate-400"></i>' +
+      '<input id="user-q" placeholder="' + t('searchUsers') + '" class="' + CLS.input + ' ps-10">' +
+      '</div>' +
+      '<div class="flex gap-2">' +
+      '<select id="users-limit" class="' + CLS.input + ' w-auto" data-act-change="usersLimit">' +
+      [10, 20, 50, 100].map((n) => '<option value="' + n + '"' + (n === UP.limit ? ' selected' : '') + '>' + fmtNum(n) + ' / ' + t('perPage') + '</option>').join('') +
+      '</select>' +
+      '<button data-act="usersSearch" class="' + CLS.btnS + '"><i data-lucide="search" class="w-4 h-4"></i></button>' +
+      '<button data-act="usersRefresh" class="' + CLS.btnS + '" title="' + t('refresh') + '"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>' +
+      '</div></div>' +
+      // جدول
+      '<div class="overflow-x-auto"><table class="w-full text-start">' +
+      '<thead><tr class="text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">' +
+      '<th class="py-3 ps-4 pe-2 text-start font-semibold">' + t('user') + '</th>' +
+      '<th class="py-3 px-2 text-start font-semibold">' + t('id') + '</th>' +
+      '<th class="py-3 px-2 text-start font-semibold hidden sm:table-cell">' + t('lang') + '</th>' +
+      '<th class="py-3 px-2 text-start font-semibold">' + t('status') + '</th>' +
+      '<th class="py-3 px-2 text-start font-semibold hidden lg:table-cell">' + t('joined') + '</th>' +
+      '<th class="py-3 pe-4 ps-2 text-end font-semibold">' + t('actions') + '</th>' +
+      '</tr></thead><tbody id="users-tbody">' + loadingRow(6) + '</tbody></table></div>' +
+      '<div id="users-empty" class="hidden py-14 text-center">' +
+      '<div class="w-14 h-14 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center mx-auto mb-3"><i data-lucide="users" class="w-6 h-6 text-slate-400"></i></div>' +
+      '<p class="text-sm text-slate-400">' + t('noUsersFound') + '</p></div>' +
+      // صفحه‌بندی
+      '<div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">' +
+      '<span id="users-page" class="text-xs text-slate-400"></span>' +
+      '<div class="flex gap-2">' +
+      '<button id="users-prev" data-act="userPrev" class="' + CLS.btnS + ' !px-3 !py-1.5 text-xs"><i data-lucide="chevron-right" class="w-4 h-4 rtl:hidden"></i><i data-lucide="chevron-left" class="w-4 h-4 ltr:hidden"></i><span class="hidden sm:inline">' + t('prev') + '</span></button>' +
+      '<button id="users-next" data-act="userNext" class="' + CLS.btnS + ' !px-3 !py-1.5 text-xs"><span class="hidden sm:inline">' + t('next') + '</span><i data-lucide="chevron-left" class="w-4 h-4 rtl:hidden"></i><i data-lucide="chevron-right" class="w-4 h-4 ltr:hidden"></i></button>' +
+      '</div></div></div>';
+
+    refreshIcons();
+    $('user-q').value = UP.q;
+    loadUsers(false);
+  }
+
+  async function loadUsers(reset) {
+    if (reset) {
+      UP.cursor = null; UP.stack = []; UP.page = 1;
+      UP.q = ($('user-q').value || '').trim();
+    }
+    const tb = $('users-tbody');
+    if (!tb) return;
+    tb.innerHTML = loadingRow(6);
+    try {
+      const p = new URLSearchParams({ limit: String(UP.limit) });
+      if (UP.cursor) p.set('cursor', UP.cursor);
+      if (UP.q) p.set('q', UP.q);
+      const d = await api('/users?' + p.toString());
+      UP.nextCursor = d.nextCursor || null;
+      tb.innerHTML = (d.rows || []).map(userRow).join('');
+      $('users-empty').classList.toggle('hidden', (d.rows || []).length > 0);
+      $('users-page').textContent = t('page') + ' ' + fmtNum(UP.page);
+      $('users-prev').disabled = UP.stack.length === 0;
+      $('users-next').disabled = !UP.nextCursor;
+      refreshIcons();
+    } catch (e) {
+      tb.innerHTML = '';
+      toast(e.message, 'error');
+    }
+  }
+
+  async function openUserDetail(id) {
+    openModal('<div class="p-6"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-slate-400"></i></div>');
+    try {
+      const d = await api('/users/' + encodeURIComponent(id));
+      const u = d.user;
+      const rows = [
+        [t('id'), '<span dir="ltr">' + esc(u.id) + '</span>'],
+        [t('firstName'), esc(u.firstName)],
+        [t('username'), u.username ? '@' + esc(u.username) : t('none')],
+        [t('lang'), (u.lang || '—').toUpperCase()],
+        [t('joined'), fmtDate(u.joinedAt)],
+        [t('lastSeen'), fmtDate(u.lastSeen)],
+        [t('status'), u.banned ? chip('bg-rose-500/10 text-rose-500', t('banned')) : u.blockedBot ? chip('bg-amber-500/10 text-amber-500', t('blockedBot')) : chip('bg-emerald-500/10 text-emerald-500', t('active'))],
+        [t('bannedAt'), u.bannedAt ? fmtDate(u.bannedAt) : t('none')],
+        [t('reason'), u.banReason ? esc(u.banReason) : t('none')],
+      ];
+      openModal(
+        '<div class="p-6">' +
+        '<div class="flex items-center gap-3 mb-5">' +
+        '<div class="w-11 h-11 rounded-full bg-gradient-to-br from-brand-400 to-blue-600 text-white font-bold flex items-center justify-center">' + esc((u.firstName || '?').slice(0, 1).toUpperCase()) + '</div>' +
+        '<div><h3 class="font-bold">' + esc(u.firstName || u.id) + '</h3><p class="text-xs text-slate-400" dir="ltr">' + esc(u.id) + '</p></div></div>' +
+        '<dl class="text-sm divide-y divide-slate-100 dark:divide-slate-800">' +
+        rows.map((r) => '<div class="flex justify-between gap-4 py-2.5"><dt class="text-slate-500 shrink-0">' + r[0] + '</dt><dd class="text-end">' + r[1] + '</dd></div>').join('') +
+        '</dl><div class="flex justify-end mt-5"><button data-act="modalClose" class="' + CLS.btnS + '">' + t('close') + '</button></div></div>'
+      );
+    } catch (e) {
+      closeModal(); toast(e.message, 'error');
+    }
+  }
+
+  function openUserMsg(id, name) {
+    MODAL.ctx = { id };
+    openModal(
+      '<div class="p-6">' +
+      '<h3 class="font-bold mb-1 flex items-center gap-2"><i data-lucide="message-square" class="w-4 h-4 text-brand-500"></i>' + t('sendMessage') + '</h3>' +
+      '<p class="text-xs text-slate-400 mb-4">' + esc(name) + ' · <span dir="ltr">' + esc(id) + '</span></p>' +
+      '<textarea id="dm-text" rows="5" maxlength="4096" class="' + CLS.input + '" placeholder="' + t('messageText') + '"></textarea>' +
+      '<div class="flex items-center gap-2 mt-3">' +
+      '<label class="text-xs text-slate-500">' + t('parseMode') + ':</label>' +
+      '<select id="dm-parse" class="' + CLS.input + ' w-auto !py-1.5 text-xs">' +
+      '<option value="">' + t('plain') + '</option><option>HTML</option><option>MarkdownV2</option></select></div>' +
+      '<div class="flex justify-end gap-2 mt-5">' +
+      '<button data-act="modalClose" class="' + CLS.btnS + '">' + t('cancel') + '</button>' +
+      '<button data-act="sendUserMsg" class="' + CLS.btnP + '"><i data-lucide="send" class="w-4 h-4"></i>' + t('send') + '</button></div></div>'
+    );
+  }
+
+  async function sendUserMsg() {
+    const text = $('dm-text').value.trim();
+    if (!text) return;
+    const btn = document.querySelector('[data-act="sendUserMsg"]');
+    btn.disabled = true;
+    try {
+      const pm = $('dm-parse').value;
+      await api('/users/' + encodeURIComponent(MODAL.ctx.id) + '/message', {
+        method: 'POST', body: { text, parseMode: pm || null },
+      });
+      toast(t('msgSent'), 'success');
+      closeModal();
+    } catch (e) {
+      toast(e.message, 'error');
+      btn.disabled = false;
+    }
+  }
+
+  // ═══════════════════════ ارسال همگانی ═══════════════════════
+  function bcChip(status) {
+    const m = {
+      running: ['bg-sky-500/10 text-sky-600 dark:text-sky-400', 'radio'],
+      paused: ['bg-amber-500/10 text-amber-600 dark:text-amber-400', 'pause'],
+      done: ['bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', 'check-circle-2'],
+      stopped: ['bg-slate-500/10 text-slate-500', 'square'],
+      failed: ['bg-rose-500/10 text-rose-600 dark:text-rose-400', 'x-circle'],
+    };
+    const [cls, icon] = m[status] || m.stopped;
+    return '<span class="' + CLS.chip + ' ' + cls + '"><i data-lucide="' + icon + '" class="w-3 h-3"></i>' + t(status) + '</span>';
+  }
+
+  function renderBcRows() {
+    const host = $('bc-rows');
+    if (!host) return;
+    host.innerHTML = BC.rows.map((row, ri) =>
+      '<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2.5" data-r="' + ri + '">' +
+      '<div class="flex items-center justify-between"><span class="text-xs font-bold text-slate-400">#' + (ri + 1) + '</span>' +
+      '<button data-act="bcDelRow" data-r="' + ri + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>' +
+      '<div class="space-y-2">' + row.map((b, bi) =>
+        '<div class="flex gap-2" data-b="' + bi + '">' +
+        '<input class="bc-bt ' + CLS.input + ' flex-1 !py-2" placeholder="' + t('btnText') + '" value="' + esc(b.text) + '">' +
+        '<input dir="ltr" class="bc-bu ' + CLS.input + ' flex-[1.4] !py-2" placeholder="' + t('btnUrl') + '" value="' + esc(b.url) + '">' +
+        '<button data-act="bcDelBtn" data-r="' + ri + '" data-b="' + bi + '" class="' + CLS.iconBtn + ' !p-1.5"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div>'
+      ).join('') + '</div>' +
+      '<button data-act="bcAddBtn" data-r="' + ri + '" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">+ ' + t('addBtn') + '</button>' +
+      '</div>'
+    ).join('');
+    refreshIcons();
+  }
+
+  function renderBroadcast() {
+    $('view').innerHTML =
+      // ── فرم ارسال ──
+      '<div class="' + CLS.card + ' p-5 md:p-6">' +
+      '<h3 class="font-bold text-sm flex items-center gap-2 mb-5"><i data-lucide="megaphone" class="w-4 h-4 text-brand-500"></i>' + t('newBroadcast') + '</h3>' +
+      '<div class="grid sm:grid-cols-2 gap-4 mb-4">' +
+      '<div><label class="' + CLS.label + '">' + t('target') + '</label>' +
+      '<select id="bc-target" class="' + CLS.input + '">' +
+      '<option value="all">' + t('allUsers') + '</option>' +
+      '<option value="active7d">' + t('active7d') + '</option>' +
+      '<option value="active30d">' + t('active30d') + '</option></select>' +
+      '<p class="text-[11px] text-slate-400 mt-1.5">' + t('targetHint') + '</p></div>' +
+      '<div><label class="' + CLS.label + '">' + t('parseMode') + '</label>' +
+      '<select id="bc-parse" class="' + CLS.input + '">' +
+      '<option value="">' + t('plain') + '</option><option>HTML</option><option>MarkdownV2</option></select></div>' +
+      '</div>' +
+      '<label class="' + CLS.label + '">' + t('messageText') + '</label>' +
+      '<textarea id="bc-text" rows="5" maxlength="4096" class="' + CLS.input + '" oninput="0"></textarea>' +
+      '<div class="text-end text-[11px] text-slate-400 mt-1"><span id="bc-count">0 / 4096</span></div>' +
+      '<div class="mt-3"><div class="flex items-center justify-between mb-2"><label class="' + CLS.label + ' !mb-0">' + t('addUrlRow') + '</label></div>' +
+      '<div id="bc-rows" class="space-y-3"></div>' +
+      '<button data-act="bcAddRow" class="' + CLS.btnS + ' mt-3 text-xs !py-2"><i data-lucide="plus" class="w-3.5 h-3.5"></i>' + t('addUrlRow') + '</button></div>' +
+      '<div class="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800">' +
+      '<button id="bc-start" data-act="bcStart" class="' + CLS.btnP + '"><i data-lucide="rocket" class="w-4 h-4"></i>' + t('startBroadcast') + '</button></div>' +
+      '</div>' +
+
+      // ── پنل پیشرفت ──
+      '<div id="run-card" class="' + CLS.card + ' p-5 md:p-6 mt-4 hidden">' +
+      '<div class="flex items-center justify-between mb-4"><h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="gauge" class="w-4 h-4 text-brand-500"></i>' + t('progress') + '</h3><span id="rp-status"></span></div>' +
+      '<div class="h-3 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden"><div id="rp-bar" class="h-full rounded-full bg-gradient-to-r from-brand-400 to-blue-600 transition-all duration-300" style="width:0%"></div></div>' +
+      '<div class="flex items-center justify-between mt-2"><span id="rp-pct" class="text-xs text-slate-400 tabular">0%</span>' +
+      '<div class="flex gap-4 text-sm"><span><b id="rp-sent" class="tabular text-emerald-500">0</b> <span class="text-xs text-slate-400">' + t('sentLabel') + '</span></span>' +
+      '<span><b id="rp-fail" class="tabular text-rose-500">0</b> <span class="text-xs text-slate-400">' + t('failedLabel') + '</span></span>' +
+      '<span><b id="rp-total" class="tabular">0</b> <span class="text-xs text-slate-400">' + t('totalLabel') + '</span></span></div></div>' +
+      '<div class="flex gap-2 mt-5" id="rp-btns">' +
+      '<button id="rp-pause" data-act="bcPause" class="' + CLS.btnS + '"><i data-lucide="pause" class="w-4 h-4"></i>' + t('pause') + '</button>' +
+      '<button id="rp-stop" data-act="bcStop" class="' + CLS.btnD + '"><i data-lucide="square" class="w-4 h-4"></i>' + t('stop') + '</button></div>' +
+      '</div>' +
+
+      // ── تاریخچه ──
+      '<div class="' + CLS.card + ' p-5 md:p-6 mt-4">' +
+      '<div class="flex items-center justify-between mb-3"><h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-brand-500"></i>' + t('broadcastHistory') + '</h3>' +
+      '<button data-act="bcHistRefresh" class="' + CLS.iconBtn + '"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button></div>' +
+      '<div id="bc-hist"><div class="py-6 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin inline-block"></i></div></div></div>';
+
+    refreshIcons();
+    renderBcRows();
+    loadHistory();
+  }
+
+  function bcPaint(job) {
+    const card = $('run-card');
+    if (!card || !job) return;
+    card.classList.remove('hidden');
+    const pct = job.total ? Math.round((job.cursor / job.total) * 100) : 0;
+    $('rp-bar').style.width = pct + '%';
+    $('rp-pct').textContent = fmtNum(pct) + '% — ' + fmtNum(job.cursor) + ' / ' + fmtNum(job.total);
+    $('rp-sent').textContent = fmtNum(job.sent);
+    $('rp-fail').textContent = fmtNum(job.failed);
+    $('rp-total').textContent = fmtNum(job.total);
+    $('rp-status').innerHTML = bcChip(job.status);
+    $('rp-pause').classList.toggle('hidden', job.status !== 'running');
+    refreshIcons();
+  }
+
+  async function bcLoop(id) {
+    while (BC.running && BC.jobId === id) {
+      let d;
+      try {
+        d = await api('/broadcast/' + id + '/tick', { method: 'POST' });
+      } catch (e) {
+        toast(e.message, 'error');
+        break;
+      }
+      bcPaint(d.job);
+      if (d.job.status !== 'running') break;
+      await sleep(200);
+    }
+    loadHistory();
+  }
+
+  async function loadHistory() {
+    const host = $('bc-hist');
+    if (!host) return;
+    try {
+      const d = await api('/broadcast');
+      const items = (d.jobs || []).slice(0, 10);
+      host.innerHTML = items.length ? items.map((j) =>
+        '<div class="flex items-start gap-3 py-3 border-b last:border-0 border-slate-100 dark:border-slate-800">' +
+        '<div class="flex-1 min-w-0">' +
+        '<p class="text-sm line-clamp-1" style="display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden">' + esc(j.text.slice(0, 90)) + '</p>' +
+        '<p class="text-[11px] text-slate-400 mt-1">' + t('createdAt') + ': ' + fmtDate(j.createdAt) + ' · ' + fmtNum(j.sent) + '/' + fmtNum(j.total) + ' ' + t('sentLabel') + ' · ' + fmtNum(j.failed) + ' ' + t('failedLabel') + '</p>' +
+        '</div>' + bcChip(j.status) + '</div>'
+      ).join('') : '<p class="text-sm text-slate-400 text-center py-6">' + t('noHistory') + '</p>';
+      refreshIcons();
+    } catch (e) { /* سکوت */ }
+  }
+
+  // ═══════════════════════ منو و دکمه‌ها ═══════════════════════
+  function renderMenu() {
+    $('view').innerHTML =
+      '<p class="text-sm text-slate-500 -mt-2 mb-4 px-1">' + t('menuHint') + '</p>' +
+      '<div class="grid lg:grid-cols-2 gap-4 items-start">' +
+      '<div class="' + CLS.card + ' p-5 md:p-6">' +
+      '<div id="menu-editor"></div>' +
+      '<div class="flex gap-2 mt-6 pt-5 border-t border-slate-100 dark:border-slate-800">' +
+      '<button data-act="menuSave" class="' + CLS.btnP + '"><i data-lucide="save" class="w-4 h-4"></i>' + t('save') + '</button>' +
+      '<button data-act="menuReset" class="' + CLS.btnS + '"><i data-lucide="rotate-ccw" class="w-4 h-4"></i>' + t('resetDefaults') + '</button>' +
+      '</div></div>' +
+
+      '<div class="space-y-4">' +
+      // ── شبیه‌ساز ──
+      '<div class="' + CLS.card + ' overflow-hidden">' +
+      '<div class="p-5 pb-3"><h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="bot" class="w-4 h-4 text-brand-500"></i>' + t('simulator') + '</h3>' +
+      '<p class="text-[11px] text-slate-400 mt-1">' + t('simHint') + '</p></div>' +
+      '<div class="mx-5 mb-5 rounded-2xl bg-[#17212b] overflow-hidden">' +
+      '<div class="flex items-center gap-3 px-4 py-3 bg-[#232e3c]">' +
+      '<div class="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-blue-600 flex items-center justify-center"><i data-lucide="bot" class="w-[18px] h-[18px] text-white"></i></div>' +
+      '<div><div class="text-white text-sm font-bold">' + esc(SIM_T[S.lang].bot) + '</div>' +
+      '<div class="text-[10px] text-slate-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>' + esc(SIM_T[S.lang].online) + '</div></div></div>' +
+      '<div id="sim-log" class="p-4 space-y-2.5 h-[280px] overflow-y-auto"></div>' +
+      '<div class="px-4 pb-4 flex flex-wrap gap-2" id="sim-chips">' +
+      ['/start', '/help', '/lang', '/id', '/ping'].map((c) => '<button data-act="simCmd" data-cmd="' + c + '" class="rounded-full bg-[#2b5278] hover:bg-[#3a6a9c] text-white text-xs font-medium px-3.5 py-1.5 transition" dir="ltr">' + c + '</button>').join('') +
+      '</div></div></div>' +
+      // ── پیش‌نمایش واقعی ──
+      '<div class="' + CLS.card + ' p-5">' +
+      '<h3 class="font-bold text-sm flex items-center gap-2 mb-3"><i data-lucide="flask-conical" class="w-4 h-4 text-brand-500"></i>' + t('sendTest') + '</h3>' +
+      '<div class="flex flex-col sm:flex-row gap-2">' +
+      '<input id="pv-chat" inputmode="numeric" dir="ltr" placeholder="' + t('chatIdPh') + '" class="' + CLS.input + ' flex-1">' +
+      '<button data-act="pvSend" class="' + CLS.btnP + '"><i data-lucide="send" class="w-4 h-4"></i>' + t('send') + '</button></div></div>' +
+      '</div></div>';
+
+    refreshIcons();
+    if (!MU.menu) loadMenu();
+    else { renderMenuEditor(); renderSim(); }
+  }
+
+  async function loadMenu() {
+    try {
+      const d = await api('/menu');
+      MU.menu = d.menu;
+      MU.defaults = d.defaults;
+      renderMenuEditor();
+      renderSim();
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  function renderMenuEditor() {
+    const host = $('menu-editor');
+    if (!host || !MU.menu) return;
+    const m = MU.menu;
+    const tabs = [
+      ['welcome', 'message-circle'], ['keyboard', 'keyboard'], ['inline', 'link-2'],
+    ];
+    let body = '';
+    if (MU.tab === 'welcome') {
+      const ta = (id, label, val, rows) =>
+        '<div><label class="' + CLS.label + '">' + label + '</label>' +
+        '<textarea id="' + id + '" rows="' + rows + '" class="' + CLS.input + '">' + esc(val) + '</textarea></div>';
+      body =
+        '<div class="grid sm:grid-cols-2 gap-4">' + ta('wm-fa', t('welcomeFa'), m.welcome.fa, 4) + ta('wm-en', t('welcomeEn'), m.welcome.en, 4) + '</div>' +
+        '<div class="grid sm:grid-cols-2 gap-4 mt-4">' + ta('hp-fa', t('helpFa'), m.help.fa, 4) + ta('hp-en', t('helpEn'), m.help.en, 4) + '</div>' +
+        '<p class="text-[11px] text-slate-400 mt-3 flex items-center gap-1.5"><i data-lucide="braces" class="w-3.5 h-3.5"></i>' + t('tplHint') + '</p>';
+    } else if (MU.tab === 'keyboard') {
+      body =
+        '<p class="text-[11px] text-slate-400 mb-3">' + t('kbRowHint') + '</p>' +
+        '<div id="kb-rows" class="space-y-2">' +
+        m.mainKeyboard.map((row, ri) =>
+          '<div class="flex gap-2" data-r="' + ri + '">' +
+          '<input class="kb-row-in ' + CLS.input + '" value="' + esc(row.join(', ')) + '">' +
+          '<button data-act="kbDelRow" data-r="' + ri + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400 shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>'
+        ).join('') + '</div>' +
+        '<button data-act="kbAddRow" class="' + CLS.btnS + ' mt-3 text-xs !py-2"><i data-lucide="plus" class="w-3.5 h-3.5"></i>' + t('addRow') + '</button>';
+    } else {
+      body =
+        '<div id="ib-rows" class="space-y-3">' +
+        m.inlineButtons.map((row, ri) =>
+          '<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2.5" data-r="' + ri + '">' +
+          '<div class="flex items-center justify-between"><span class="text-xs font-bold text-slate-400">#' + (ri + 1) + '</span>' +
+          '<button data-act="ibDelRow" data-r="' + ri + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>' +
+          '<div class="space-y-2">' + row.map((b, bi) =>
+            '<div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_6rem_1.2rem] gap-2 items-center" data-b="' + bi + '">' +
+            '<input class="ib-t ' + CLS.input + ' !py-2 !bg-white dark:!bg-slate-800" placeholder="' + t('btnText') + '" value="' + esc(b.text) + '">' +
+            '<select class="ib-type ' + CLS.input + ' !py-2 !bg-white dark:!bg-slate-800" dir="ltr">' +
+            '<option value="url"' + (b.type === 'url' ? ' selected' : '') + '>🔗 ' + t('typeUrl') + '</option>' +
+            '<option value="callback"' + (b.type === 'callback' ? ' selected' : '') + '>⚡ ' + t('typeCallback') + '</option></select>' +
+            '<input dir="ltr" class="ib-v ' + CLS.input + ' !py-2 !bg-white dark:!bg-slate-800 col-span-2 sm:col-span-1" placeholder="' + (b.type === 'url' ? t('valueUrl') : t('valueCb')) + '" value="' + esc(b.value) + '">' +
+            '<button data-act="ibDelBtn" data-r="' + ri + '" data-b="' + bi + '" class="' + CLS.iconBtn + ' !p-1.5 text-rose-400"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>' +
+            '</div>').join('') + '</div>' +
+          '<button data-act="ibAddBtn" data-r="' + ri + '" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">+ ' + t('addBtn') + '</button>' +
+          '</div>').join('') + '</div>' +
+        '<button data-act="ibAddRow" class="' + CLS.btnS + ' mt-3 text-xs !py-2"><i data-lucide="plus" class="w-3.5 h-3.5"></i>' + t('addRow') + '</button>';
+    }
+    host.innerHTML =
+      '<div class="flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 mb-5">' +
+      tabs.map(([id, icon]) =>
+        '<button data-act="menuTab" data-tab="' + id + '" class="flex-1 flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-bold transition ' +
+        (MU.tab === id ? 'bg-white dark:bg-slate-900 shadow text-brand-600 dark:text-brand-400' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200') + '">' +
+        '<i data-lucide="' + icon + '" class="w-3.5 h-3.5"></i>' + t(id + 'Tab') + '</button>').join('') +
+      '</div>' + body;
+    refreshIcons();
+  }
+
+  // خواندن مقادیر تب فعلی از DOM به مدل
+  function syncMenuDom() {
+    if (!MU.menu) return;
+    const m = MU.menu;
+    if (MU.tab === 'welcome') {
+      m.welcome.fa = $('wm-fa').value;
+      m.welcome.en = $('wm-en').value;
+      m.help.fa = $('hp-fa').value;
+      m.help.en = $('hp-en').value;
+    } else if (MU.tab === 'keyboard') {
+      m.mainKeyboard = [...document.querySelectorAll('.kb-row-in')]
+        .map((el) => el.value.split(/[,،]/).map((x) => x.trim()).filter(Boolean))
+        .filter((r) => r.length);
+    } else {
+      m.inlineButtons = [...document.querySelectorAll('#ib-rows > [data-r]')].map((rowEl) =>
+        [...rowEl.querySelectorAll('[data-b]')].map((bEl) => ({
+          text: bEl.querySelector('.ib-t').value,
+          type: bEl.querySelector('.ib-type').value,
+          value: bEl.querySelector('.ib-v').value,
+        })).filter((b) => b.text && b.value)
+      ).filter((r) => r.length);
+    }
+  }
+
+  // ── شبیه‌ساز ──
+  function renderSim() {
+    const log = $('sim-log');
+    if (!log || !MU.menu) return;
+    log.innerHTML = '';
+    const l = S.lang === 'fa' ? 'fa' : 'en';
+    simBot(esc(m.welcome[l] || m.welcome.fa).replace(/\{name\}/g, 'Admin') + simPills(m.inlineButtons));
+  }
+  function simUser(text) {
+    $('sim-log').insertAdjacentHTML('beforeend',
+      '<div class="flex justify-end"><div class="bg-brand-500 text-white text-[13px] leading-5 rounded-2xl rounded-br-md px-3.5 py-2 max-w-[80%]" dir="auto">' + esc(text) + '</div></div>');
+    simScroll();
+  }
+  function simBot(html) {
+    $('sim-log').insertAdjacentHTML('beforeend',
+      '<div class="flex justify-start"><div class="bg-[#212d3b] text-slate-100 text-[13px] leading-5 rounded-2xl rounded-bl-md px-3.5 py-2 max-w-[85%] whitespace-pre-wrap" dir="auto">' + html + '</div></div>');
+    simScroll();
+  }
+  function simPills(buttons) {
+    if (!buttons || !buttons.length) return '';
+    const rows = buttons.map((row) =>
+      '<div class="flex gap-1.5 justify-center flex-wrap mt-2">' + row.map((b) =>
+        '<span class="rounded-lg bg-[#2b5278] text-white text-[11px] font-medium px-3 py-1.5">' + esc(b.text) + '</span>').join('') + '</div>');
+    return '<div class="mt-1">' + rows.join('') + '</div>';
+  }
+  function simScroll() { const l = $('sim-log'); if (l) l.scrollTop = l.scrollHeight; }
+  function simReply(cmd) {
+    const st = SIM_T[S.lang];
+    const lang = S.lang === 'fa' ? 'fa' : 'en';
+    const m = MU.menu;
+    if (cmd === '/start') {
+      simBot(esc(m.welcome[lang] || m.welcome.fa).replace(/\{name\}/g, 'Admin') + simPills(m.inlineButtons));
+      setTimeout(() => simBot(st.kbHint +
+        '<div class="grid grid-cols-2 gap-1.5 mt-2">' + m.mainKeyboard.flat().slice(0, 8).map((x) =>
+          '<span class="text-center text-[11px] bg-slate-500/30 rounded-lg px-2 py-1.5">' + esc(x) + '</span>').join('') + '</div>'), 500);
+    } else if (cmd === '/help') {
+      simBot(esc(m.help[lang] || m.help.fa));
+    } else if (cmd === '/lang') {
+      simBot(st.chooseLang + simPills([[{ text: 'فارسی 🇮🇷' }, { text: 'English 🇬🇧' }]]));
+    } else if (cmd === '/id') {
+      simBot(st.yourId);
+    } else if (cmd === '/ping') {
+      simBot(st.pong);
+    } else {
+      simBot(st.unknown);
+    }
+  }
+
+  // ═══════════════════════ تنظیمات ═══════════════════════
+  function renderSettings() {
+    $('view').innerHTML =
+      '<div class="grid lg:grid-cols-2 gap-4 items-start">' +
+      // ── ربات ──
+      '<div class="' + CLS.card + ' p-5 md:p-6">' +
+      '<h3 class="font-bold text-sm flex items-center gap-2 mb-5"><i data-lucide="bot" class="w-4 h-4 text-brand-500"></i>' + t('botSettings') + '</h3>' +
+      '<div class="mb-4"><label class="' + CLS.label + '">' + t('botToken') + '</label>' +
+      '<p id="st-token-cur" class="text-xs mb-2"></p>' +
+      '<input id="st-token-in" dir="ltr" type="password" autocomplete="off" placeholder="123456:ABC-DEF…" class="' + CLS.input + '">' +
+      '<p class="text-[11px] text-slate-400 mt-1.5">' + t('tokenHint') + '</p></div>' +
+      '<div class="mb-4"><label class="' + CLS.label + '">' + t('adminIds') + '</label>' +
+      '<input id="st-admins" dir="ltr" inputmode="numeric" placeholder="111111111, 222222222" class="' + CLS.input + '">' +
+      '<p class="text-[11px] text-slate-400 mt-1.5">' + t('adminIdsHint') + '</p></div>' +
+      '<div class="mb-5"><label class="' + CLS.label + '">' + t('defaultBotLang') + '</label>' +
+      '<select id="st-lang" class="' + CLS.input + '"><option value="fa">فارسی</option><option value="en">English</option></select></div>' +
+      '<button data-act="saveGeneral" class="' + CLS.btnP + '"><i data-lucide="save" class="w-4 h-4"></i>' + t('save') + '</button></div>' +
+
+      '<div class="space-y-4">' +
+      // ── وب‌هوک ──
+      '<div class="' + CLS.card + ' p-5 md:p-6">' +
+      '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="webhook" class="w-4 h-4 text-brand-500"></i>' + t('webhookMgmt') + '</h3>' +
+      '<div id="st-wh-box" class="mb-4"><div class="py-4 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin inline-block"></i></div></div>' +
+      '<div class="flex gap-2">' +
+      '<button data-act="setWebhook" data-action="set" class="' + CLS.btnP + '"><i data-lucide="plug-zap" class="w-4 h-4"></i>' + t('setWebhook') + '</button>' +
+      '<button data-act="setWebhook" data-action="delete" class="' + CLS.btnS + ' text-rose-500"><i data-lucide="unplug" class="w-4 h-4"></i>' + t('delWebhook') + '</button></div></div>' +
+      // ── تیونینگ ارسال ──
+      '<div class="' + CLS.card + ' p-5 md:p-6">' +
+      '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="gauge" class="w-4 h-4 text-brand-500"></i>' + t('broadcastTuning') + '</h3>' +
+      '<div class="grid grid-cols-2 gap-3">' +
+      '<div><label class="' + CLS.label + '">' + t('batchSize') + '</label><input id="st-batch" type="number" min="1" max="50" class="' + CLS.input + '"></div>' +
+      '<div><label class="' + CLS.label + '">' + t('delayMs') + '</label><input id="st-delay" type="number" min="20" max="500" step="10" class="' + CLS.input + '"></div></div>' +
+      '<button data-act="saveTuning" class="' + CLS.btnS + ' mt-4"><i data-lucide="save" class="w-4 h-4"></i>' + t('save') + '</button></div>' +
+      // ── پنل ──
+      '<div class="' + CLS.card + ' p-5 md:p-6">' +
+      '<h3 class="font-bold text-sm flex items-center gap-2 mb-4"><i data-lucide="sliders-horizontal" class="w-4 h-4 text-brand-500"></i>' + t('panelPrefs') + '</h3>' +
+      '<div class="grid grid-cols-2 gap-4">' +
+      '<div><span class="' + CLS.label + '">' + t('appearance') + '</span>' +
+      '<div class="flex gap-2">' +
+      '<button data-act="setTheme" data-v="dark" class="preftheme ' + CLS.btnS + ' flex-1 !py-2 text-xs"><i data-lucide="moon" class="w-3.5 h-3.5"></i>' + t('dark') + '</button>' +
+      '<button data-act="setTheme" data-v="light" class="preftheme ' + CLS.btnS + ' flex-1 !py-2 text-xs"><i data-lucide="sun" class="w-3.5 h-3.5"></i>' + t('light') + '</button></div></div>' +
+      '<div><span class="' + CLS.label + '">' + t('language') + '</span>' +
+      '<div class="flex gap-2">' +
+      '<button data-act="setLang" data-v="fa" class="preflang ' + CLS.btnS + ' flex-1 !py-2 text-xs">فارسی</button>' +
+      '<button data-act="setLang" data-v="en" class="preflang ' + CLS.btnS + ' flex-1 !py-2 text-xs">English</button></div></div></div></div>' +
+      '</div></div>';
+
+    refreshIcons();
+    loadSettings();
+  }
+
+  async function loadSettings() {
+    try {
+      const [s, dash] = await Promise.all([
+        api('/settings'),
+        api('/dashboard/stats').catch(() => null),
+      ]);
+      const st = s.settings;
+      $('st-token-cur').innerHTML = st.hasToken
+        ? '<span class="text-emerald-500 font-semibold">✓ ' + t('tokenStored') + '</span> <span class="font-mono text-slate-400" dir="ltr">' + esc(st.tokenMasked) + '</span>'
+        : '<span class="text-amber-500 font-semibold">⚠ ' + t('tokenMissingWarn') + '</span>';
+      $('st-admins').value = (st.adminIds || []).join(', ');
+      $('st-lang').value = st.defaultLang || 'fa';
+      $('st-batch').value = (st.broadcast && st.broadcast.batchSize) || 25;
+      $('st-delay').value = (st.broadcast && st.broadcast.delayMs) || 40;
+      if (dash && $('st-wh-box')) $('st-wh-box').innerHTML = whBoxHtml(dash.webhook);
+      paintPrefs();
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  function paintPrefs() {
+    document.querySelectorAll('.preftheme').forEach((b) => {
+      const on = (b.dataset.v === 'dark') === document.documentElement.classList.contains('dark');
+      b.classList.toggle('!border-brand-500', on);
+      b.classList.toggle('!text-brand-500', on);
+    });
+    document.querySelectorAll('.preflang').forEach((b) => {
+      const on = b.dataset.v === S.lang;
+      b.classList.toggle('!border-brand-500', on);
+      b.classList.toggle('!text-brand-500', on);
+    });
+  }
+
+  // ═══════════════════════ ACTIONS ═══════════════════════
+  const ACTIONS = {
+    // عمومی
+    nav: (d) => { if (d.to !== S.route) go(d.to); },
+    login: () => doLogin(),
+    pwEye: () => {
+      const i = $('pw');
+      i.type = i.type === 'password' ? 'text' : 'password';
+    },
+    logout: () => doLogout(),
+    modalClose: () => closeModal(),
+    confirmYes: () => { const r = CF.resolve; CF.resolve = null; closeModal(); r && r(true); },
+    confirmNo: () => { const r = CF.resolve; CF.resolve = null; closeModal(); r && r(false); },
+    copyTxt: (d) => { navigator.clipboard && navigator.clipboard.writeText(d.txt); toast(t('copied'), 'success'); },
+    pingNow: () => ping(),
+    dashRefresh: () => loadDashboard(),
+
+    toggleTheme: () => {
+      const dark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('bp_theme', dark ? 'dark' : 'light');
+      const btn = document.querySelector('[data-act="toggleTheme"]');
+      if (btn) { btn.innerHTML = '<i data-lucide="' + (dark ? 'sun' : 'moon') + '" class="w-[18px] h-[18px]"></i>'; }
+      refreshIcons();
+      paintPrefs();
+    },
+    setTheme: (d) => {
+      const dark = d.v === 'dark';
+      document.documentElement.classList.toggle('dark', dark);
+      localStorage.setItem('bp_theme', d.v);
+      const btn = document.querySelector('[data-act="toggleTheme"]');
+      if (btn) { btn.innerHTML = '<i data-lucide="' + (dark ? 'sun' : 'moon') + '" class="w-[18px] h-[18px]"></i>'; }
+      refreshIcons();
+      paintPrefs();
+    },
+    toggleLang: () => ACTIONS.setLang({ v: S.lang === 'fa' ? 'en' : 'fa' }),
+    setLang: (d) => {
+      S.lang = d.v;
+      localStorage.setItem('bp_lang', d.v);
+      document.documentElement.lang = d.v;
+      document.documentElement.dir = d.v === 'fa' ? 'rtl' : 'ltr';
+      render();
+    },
+
+    // کاربران
+    usersSearch: () => loadUsers(true),
+    usersRefresh: () => loadUsers(true),
+    userPrev: () => { if (UP.stack.length) { UP.cursor = UP.stack.pop(); UP.page--; loadUsers(false); } },
+    userNext: () => { if (UP.nextCursor) { UP.stack.push(UP.cursor); UP.cursor = UP.nextCursor; UP.page++; loadUsers(false); } },
+    banUser: async (d) => {
+      if (!(await confirmDlg(t('banQ'), t('banUser')))) return;
+      try { await api('/users/' + encodeURIComponent(d.id) + '/ban', { method: 'POST', body: {} }); toast(t('saved'), 'success'); loadUsers(false); }
+      catch (e) { toast(e.message, 'error'); }
+    },
+    unbanUser: async (d) => {
+      try { await api('/users/' + encodeURIComponent(d.id) + '/unban', { method: 'POST' }); toast(t('saved'), 'success'); loadUsers(false); }
+      catch (e) { toast(e.message, 'error'); }
+    },
+    openMsg: (d) => openUserMsg(d.id, d.name),
+    sendUserMsg: () => sendUserMsg(),
+    userDetail: (d) => openUserDetail(d.id),
+
+    // ارسال همگانی
+    bcAddRow: () => { BC.rows.push([{ text: '', url: '' }]); renderBcRows(); },
+    bcDelRow: (d) => { BC.rows.splice(+d.r, 1); renderBcRows(); },
+    bcAddBtn: (d) => { BC.rows[+d.r].push({ text: '', url: '' }); renderBcRows(); },
+    bcDelBtn: (d) => { BC.rows[+d.r].splice(+d.b, 1); renderBcRows(); },
+    bcHistRefresh: () => loadHistory(),
+    bcStart: async () => {
+      const text = $('bc-text').value.trim();
+      if (!text) { toast(t('messageText'), 'info'); $('bc-text').focus(); return; }
+      const buttons = BC.rows.map((r) => r.filter((b) => b.text.trim() && b.url.trim())).filter((r) => r.length);
+      const btn = $('bc-start');
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>' + t('sending');
+      refreshIcons();
+      try {
+        const pm = $('bc-parse').value;
+        const d = await api('/broadcast', {
+          method: 'POST',
+          body: { text, parseMode: pm || null, buttons, target: $('bc-target').value },
+        });
+        BC.running = true;
+        BC.jobId = d.job.id;
+        bcPaint(d.job);
+        bcLoop(d.job.id);
+      } catch (e) {
+        toast(e.message === 'no_targets' ? t('noTargets') : e.message, 'error');
+      }
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="rocket" class="w-4 h-4"></i>' + t('startBroadcast');
+      refreshIcons();
+    },
+    bcPause: async () => {
+      if (!BC.jobId) return;
+      BC.running = false;
+      try { const d = await api('/broadcast/' + BC.jobId + '/pause', { method: 'POST' }); bcPaint(d.job); } catch (e) {}
+    },
+    bcResume: async () => {
+      if (!BC.jobId) return;
+      try {
+        const d = await api('/broadcast/' + BC.jobId + '/resume', { method: 'POST' });
+        bcPaint(d.job);
+        BC.running = true;
+        bcLoop(BC.jobId);
+      } catch (e) { toast(e.message, 'error'); }
+    },
+    bcStop: async () => {
+      if (!BC.jobId) return;
+      if (!(await confirmDlg(t('confirmStop'), t('stop')))) return;
+      BC.running = false;
+      try { const d = await api('/broadcast/' + BC.jobId + '/stop', { method: 'POST' }); bcPaint(d.job); } catch (e) {}
+      loadHistory();
+    },
+
+    // منو
+    menuTab: (d) => { syncMenuDom(); MU.tab = d.tab; renderMenuEditor(); },
+    menuSave: async () => {
+      syncMenuDom();
+      try { await api('/menu', { method: 'PUT', body: MU.menu }); toast(t('saved'), 'success'); renderSim(); }
+      catch (e) { toast(e.message, 'error'); }
+    },
+    menuReset: async () => {
+      if (!(await confirmDlg(t('confirmReset'), t('resetDefaults')))) return;
+      MU.menu = JSON.parse(JSON.stringify(MU.defaults));
+      try { await api('/menu', { method: 'PUT', body: MU.menu }); toast(t('saved'), 'success'); } catch (e) {}
+      renderMenuEditor();
+      renderSim();
+    },
+    kbAddRow: () => { syncMenuDom(); MU.menu.mainKeyboard.push(['']); renderMenuEditor(); },
+    kbDelRow: (d) => { syncMenuDom(); MU.menu.mainKeyboard.splice(+d.r, 1); renderMenuEditor(); },
+    ibAddRow: () => { syncMenuDom(); MU.menu.inlineButtons.push([{ text: '', type: 'url', value: '' }]); renderMenuEditor(); },
+    ibDelRow: (d) => { syncMenuDom(); MU.menu.inlineButtons.splice(+d.r, 1); renderMenuEditor(); },
+    ibAddBtn: (d) => { syncMenuDom(); MU.menu.inlineButtons[+d.r].push({ text: '', type: 'url', value: '' }); renderMenuEditor(); },
+    ibDelBtn: (d) => { syncMenuDom(); MU.menu.inlineButtons[+d.r].splice(+d.b, 1); renderMenuEditor(); },
+    simCmd: (d) => {
+      syncMenuDom();
+      simUser(d.cmd);
+      setTimeout(() => simReply(d.cmd), 380);
+    },
+    pvSend: async () => {
+      const chatId = Number(($('pv-chat').value || '').replace(/[^\d-]/g, ''));
+      if (!chatId) { toast(t('chatIdPh'), 'info'); return; }
+      try {
+        await api('/menu/preview', { method: 'POST', body: { chatId } });
+        toast(t('testSent'), 'success');
+      } catch (e) { toast(e.message, 'error'); }
+    },
+
+    // تنظیمات
+    saveGeneral: async () => {
+      const body = { adminIds: $('st-admins').value, defaultLang: $('st-lang').value };
+      const tk = $('st-token-in').value.trim();
+      if (tk) body.botToken = tk;
+      try {
+        await api('/settings', { method: 'PUT', body });
+        $('st-token-in').value = '';
+        toast(t('saved'), 'success');
+        loadSettings();
+      } catch (e) { toast(e.message, 'error'); }
+    },
+    saveTuning: async () => {
+      try {
+        await api('/settings', {
+          method: 'PUT',
+          body: { broadcast: { batchSize: Number($('st-batch').value), delayMs: Number($('st-delay').value) } },
+        });
+        toast(t('saved'), 'success');
+      } catch (e) { toast(e.message, 'error'); }
+    },
+    setWebhook: async (d) => {
+      if (d.action === 'delete' && !(await confirmDlg(t('confirmDelWh'), t('delWebhook')))) return;
+      try {
+        await api('/settings/webhook', { method: 'POST', body: { action: d.action } });
+        toast(d.action === 'set' ? t('webhookSetOk') : t('webhookDelOk'), 'success');
+        loadSettings();
+      } catch (e) { toast(e.message, 'error'); }
+    },
+  };
+
+  // pause دکمه‌ی resume — بعد از pause دکمه تبدیل شود
+  const _origBcPause = ACTIONS.bcPause;
+  ACTIONS.bcPause = async (...a) => {
+    await _origBcPause(...a);
+    const b = $('rp-pause');
+    if (b) {
+      b.setAttribute('data-act', 'bcResume');
+      b.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i>' + t('resume');
+      refreshIcons();
+    }
+  };
+  ACTIONS.bcResume = async () => {
+    const b = $('rp-pause');
+    if (b) {
+      b.setAttribute('data-act', 'bcPause');
+      b.innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i>' + t('pause');
+      refreshIcons();
+    }
+    if (!BC.jobId) return;
+    try {
+      const d = await api('/broadcast/' + BC.jobId + '/resume', { method: 'POST' });
+      bcPaint(d.job);
+      BC.running = true;
+      bcLoop(BC.jobId);
+    } catch (e) { toast(e.message, 'error'); }
+  };
+
+  // ═══════════════════════ رویدادها ═══════════════════════
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-act]');
+    if (!el) return;
+    const fn = ACTIONS[el.getAttribute('data-act')];
+    if (fn) { e.preventDefault(); fn(el.dataset, el); }
+  });
+
+  document.addEventListener('input', (e) => {
+    const x = e.target;
+    if (x.id === 'bc-text' && $('bc-count')) {
+      $('bc-count').textContent = fmtNum(x.value.length) + ' / 4096';
+      return;
+    }
+    if (x.classList.contains('bc-bt') || x.classList.contains('bc-bu')) {
+      const rowEl = x.closest('[data-r]'), bEl = x.closest('[data-b]');
+      if (!rowEl || !bEl) return;
+      const b = BC.rows[+rowEl.dataset.r] && BC.rows[+rowEl.dataset.r][+bEl.dataset.b];
+      if (b) { if (x.classList.contains('bc-bt')) b.text = x.value; else b.url = x.value; }
+      return;
+    }
+    if (x.classList.contains('ib-t') || x.classList.contains('ib-v') || x.classList.contains('ib-type')) {
+      syncMenuDom();
+      return;
+    }
+    if (x.classList && x.classList.contains('kb-row-in')) { syncMenuDom(); }
+  });
+
+  document.addEventListener('change', (e) => {
+    const x = e.target;
+    if (x.id === 'users-limit') { UP.limit = Number(x.value); loadUsers(true); }
+    if (x.classList && x.classList.contains('ib-type')) syncMenuDom();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    if (e.target.id === 'pw') { e.preventDefault(); doLogin(); }
+    else if (e.target.id === 'user-q') { e.preventDefault(); loadUsers(true); }
+  });
+
+  // ═══════════════════════ روتر و بوت ═══════════════════════
+  function go(route) {
+    if (ROUTES.includes(route)) location.hash = '#/' + route;
+  }
+  function render() {
+    clearTimers();
+    const h = (location.hash || '').replace(/^#\/?/, '');
+    S.route = ROUTES.includes(h) ? h : 'dashboard';
+    if (!S.token) { renderLogin(); return; }
+    renderShell();
+  }
+  window.addEventListener('hashchange', render);
+
+  // بوت: اگر توکن ذخیره‌شده داریم اعتبارسنجی می‌کنیم
+  (async function boot() {
+    if (S.token) {
+      try { await api('/auth/session'); } catch (e) { /* نشست نامعتبر → api خودش لاگین را رندر می‌کند */ }
+    }
+    if (!S.token) { renderLogin(); return; }
+    render();
+  })();
+  </script>
+</body>
+</html>
