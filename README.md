@@ -31,8 +31,6 @@ Bilingual (FA/EN) · Production-ready · Fully serverless
 | **مدیریت کاربران · Users** | **سازنده نظرسنجی تعاملی · Poll builder** |
 | ![ویرایشگر دکمه‌ها](assets/screens/menu-buttons-fa-dark.jpg) | ![تنظیمات](assets/screens/settings-fa-dark.jpg) |
 | **ویرایشگر دکمه با ردیف/ستون + شبیه‌ساز · Button editor + simulator** | **زبان ربات و تنظیمات · Settings** |
-| ![انگلیسی روشن](assets/screens/dashboard-en-light.jpg) | ![موبایل](assets/screens/users-mobile-fa-dark.jpg) |
-| **حالت روشن + EN · Light + English** | **موبایل: کارت‌های کاربر + فوتر رنگی · Mobile: user cards + footer** |
 
 ---
 
